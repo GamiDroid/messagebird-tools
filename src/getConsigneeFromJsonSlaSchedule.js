@@ -19,11 +19,12 @@
 * @throws ExecutionError
 */
 exports.handler = async function(context, variables) {
+
     if (!variables.hasOwnProperty('jsonSlaSchedule'))
-        return { error: 'jsonSlaSchedule is required' };
+        return { success: false, error: 'jsonSlaSchedule is required' };
 
     if (!variables.hasOwnProperty('date'))
-        return { error: 'date is required' };
+        return { success: false, error: 'date is required' };
 
     // Get the list of possible consignees from the JSON SLA schedule
     const slaSchedule = JSON.parse(variables.jsonSlaSchedule);
@@ -40,8 +41,8 @@ exports.handler = async function(context, variables) {
     // Get consignee details if found
     if (foundSchedule) {
         const consignee = consignees.find(c => c.Key === foundSchedule.Consignee) || null;
-        return consignee;
+        return { success: true, consignee: consignee };
     }
 
-    return { error: 'No consignees available for the given date', date: variables.date };
+    return { success: false, error: 'No consignees available for the given date', date: variables.date };
 };
