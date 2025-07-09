@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MessagebirdTools.ExcelSchedule": {
+      "commandName": "Project",
+      "commandLineArgs": "\"C:\\Users\\kdamen\\Downloads\\excel-schedule-test.xlsx\""
+    }
+  }
+}
