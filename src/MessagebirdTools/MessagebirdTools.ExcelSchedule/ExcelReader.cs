@@ -73,8 +73,9 @@ internal sealed class ExcelReader(string pathToExcel) : IDisposable
 
             var schedule = new Schedule(
                 LineNumber: row.RowNumber(),
-                From: new DateTime(fromDate.Year, fromDate.Month, fromDate.Day, fromTime.Hours, fromTime.Minutes, fromTime.Seconds, DateTimeKind.Utc),
-                To: new DateTime(toDate.Year, toDate.Month, toDate.Day, toTime.Hours, toTime.Minutes, toTime.Seconds, DateTimeKind.Utc),
+                // Read dates and times, convert to UTC
+                From: new DateTime(fromDate.Year, fromDate.Month, fromDate.Day, fromTime.Hours, fromTime.Minutes, fromTime.Seconds, DateTimeKind.Local).ToUniversalTime(),
+                To: new DateTime(toDate.Year, toDate.Month, toDate.Day, toTime.Hours, toTime.Minutes, toTime.Seconds, DateTimeKind.Local).ToUniversalTime(),
                 Consignee: row.Cell(5).GetValue<string>()
             );
             schedules.Add(schedule);
