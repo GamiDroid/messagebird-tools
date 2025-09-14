@@ -102,6 +102,11 @@ internal class App
             httpClient.DefaultRequestHeaders.Add("Authorization", "AccessKey " + apiKey);
 
             var response = await httpClient.PostAsJsonAsync($"/databases/{databaseKey}", new { Key = databaseRecordKey, Value = jsonData });
+
+            response.EnsureSuccessStatusCode();
+
+            Console.WriteLine($"Database record '{databaseRecordKey}' succesfully is modified.");
+            Console.WriteLine($"View at: https://dashboard.messagebird.com/nl/developers/databases/{databaseKey}/edit/document/{databaseRecordKey}");
         }
         catch (Exception ex)
         {
