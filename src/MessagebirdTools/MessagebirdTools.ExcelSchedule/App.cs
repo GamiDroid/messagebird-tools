@@ -47,6 +47,13 @@ internal class App
                 return;
             }
 
+            var databaseRecordKey = excel.GetDatabaseRecordKey();
+            if (string.IsNullOrEmpty(databaseRecordKey))
+            {
+                Console.WriteLine("Database record key is not set in the 'Settings' worksheet (Cell B3).");
+                return;
+            }
+
             var consignees = excel.GetConsignees();
             if (consignees.Count == 0)
             {
@@ -94,7 +101,7 @@ internal class App
 
             httpClient.DefaultRequestHeaders.Add("Authorization", "AccessKey " + apiKey);
 
-            var response = await httpClient.PostAsJsonAsync($"/databases/{databaseKey}", new { Key = "test1", Value = jsonData });
+            var response = await httpClient.PostAsJsonAsync($"/databases/{databaseKey}", new { Key = databaseRecordKey, Value = jsonData });
         }
         catch (Exception ex)
         {

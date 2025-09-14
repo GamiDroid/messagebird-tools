@@ -42,6 +42,12 @@ internal sealed class ExcelReader(string pathToExcel) : IDisposable
         return settingsSheet.Cell("B2").GetValue<string>();
     }
 
+    public string GetDatabaseRecordKey()
+    {
+        var settingsSheet = _workbook.Worksheet("Settings");
+        return settingsSheet.Cell("B3").GetValue<string>();
+    }
+
     public ICollection<Consignee> GetConsignees()
     {
         var consigneesSheet = _workbook.Worksheet("Consignees");
