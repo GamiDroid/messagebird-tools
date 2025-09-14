@@ -92,6 +92,24 @@ internal class App
                 return;
             }
 
+            var warnings = validator.ValidateSubsequentSchedules();
+            if (warnings.Length > 0)
+            {
+                Console.WriteLine("Schedule validation warnings:");
+                foreach (var warning in warnings)
+                {
+                    Console.WriteLine($"- {warning}");
+                }
+
+                Console.Write("Warnings detected, but proceeding with the import? (Y/[N]): ");
+                var input = Console.Read();
+                if (input != 'Y' && input != 'y' && input != '\n' && input != '\r')
+                {
+                    Console.WriteLine("Import cancelled.");
+                    return;
+                }
+            }
+
             var jsonData = JsonSerializer.Serialize(new SlaSchedule(consignees, schedules), SlaScheduleJsonContext.Default.SlaSchedule);
 
             var httpClient = new HttpClient

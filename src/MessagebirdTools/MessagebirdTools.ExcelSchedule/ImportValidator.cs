@@ -63,4 +63,34 @@ internal class ImportValidator(ICollection<Consignee> consignees, ICollection<Sc
 
         return [.. errors];
     }
+
+    public string[] ValidateSubsequentSchedules()
+    {
+        var warnings = new List<string>();
+
+        var orderedSchedules = _schedules.OrderBy(s => s.From).ToList();
+
+        for (var index = 0; index < orderedSchedules.Count; index++)
+        {
+            if (index == 0) continue;
+
+            var schedule = orderedSchedules[index];
+            var previous = orderedSchedules[index - 1];
+
+            if (schedule.From < previous.To)
+            {
+                warnings.Add($"Schedule 'l{schedule.LineNumber}' starts before the previous schedule ends.");
+            }
+
+            var gap = previous.To - schedule.From;
+            var maxGap = TimeSpan.FromMinutes(-1);
+
+            if (gap < maxGap)
+            {
+                warnings.Add($"Schedule 'l{schedule.LineNumber}' has a gap of {gap} from the previous schedule.");
+            }
+        }
+
+        return [.. warnings];
+    }
 }
