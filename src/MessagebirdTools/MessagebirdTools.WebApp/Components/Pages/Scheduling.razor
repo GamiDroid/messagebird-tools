@@ -1,0 +1,161 @@
+@page "/scheduling"
+@using MessagebirdTools.ExcelSchedule
+@using MessagebirdTools.WebApp.Components.Dialogs
+@using MessagebirdTools.WebApp.Models
+@using MessagebirdTools.WebApp.Services
+@inject ExcelService ExcelService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<PageTitle>Scheduling Management</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Scheduling Management</MudText>
+
+@if (!isInitialized)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    <MudText>Initializing...</MudText>
+}
+else
+{
+    <MudPaper Class="pa-4 mb-4">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenAddDialog" StartIcon="@Icons.Material.Filled.AddAlarm">Add New Schedule</MudButton>
+    </MudPaper>
+
+    <MudDateRangePicker @bind-DateRange="dateRange" Label="Filter by Date Range" AutoClose="true" />
+    <MudSelect T="string" Label="Filter by Consignee" @bind-Value="selectedConsigneeKey">
+        <MudSelectItem Value="string.Empty">All Consignees</MudSelectItem>
+        @foreach (var consignee in consigneesList)
+        {
+            <MudSelectItem Value="@consignee.Key">@consignee.Name</MudSelectItem>
+        }
+    </MudSelect>
+
+    @if (filteredSchedules.Count == 0)
+    {
+        <MudAlert Severity="Severity.Info">No schedules found. Add a new schedule to get started.</MudAlert>
+    }
+    else
+    {
+        <MudTable Items="@filteredSchedules" Dense="true" Hover="true" Bordered="true" Striped="true">
+            <HeaderContent>
+                <MudTh>From</MudTh>
+                <MudTh>To</MudTh>
+                <MudTh>Personnel</MudTh>
+                <MudTh>Actions</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="From">@context.From.ToString("g")</MudTd>
+                <MudTd DataLabel="To">@context.To.ToString("g")</MudTd>
+                <MudTd DataLabel="Consignee">@GetConsigneeName(context.Consignee)</MudTd>
+                <MudTd>
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => OpenEditDialog(context))" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="@(() => OpenDeleteDialog(context))" />
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+}
+
+@code {
+    private bool isInitialized = false;
+    private List<Schedule> scheduleList = new();
+    private List<Consignee> consigneesList = new();
+    private List<Schedule> filteredSchedules = new();
+    private DateRange dateRange = new(DateTime.Now.Date, DateTime.Now.Date.AddDays(30));
+    private string selectedConsigneeKey = "";
+    private string excelPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "PersonnelManagement.xlsx");
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Ensure directory exists
+        var directory = Path.GetDirectoryName(excelPath);
+        if (!Directory.Exists(directory) && directory != null)
+        {
+            Directory.CreateDirectory(directory);
+        }
+
+        await ExcelService.InitializeAsync(excelPath);
+        await RefreshData();
+        isInitialized = true;
+    }
+
+    private async Task RefreshData()
+    {
+        scheduleList = await ExcelService.GetAllSchedulesAsync();
+        consigneesList = ExcelService.GetAllConsignees();
+        ApplyFilters();
+    }
+
+    private void ApplyFilters()
+    {
+        filteredSchedules = scheduleList
+            .Where(s => (dateRange.Start == null || s.From >= dateRange.Start) && 
+                       (dateRange.End == null || s.From <= dateRange.End))
+            .Where(s => string.IsNullOrEmpty(selectedConsigneeKey) || s.Consignee == selectedConsigneeKey)
+            .OrderBy(s => s.From)
+            .ToList();
+    }
+
+    private string GetConsigneeName(string? consigneeKey)
+    {
+        return consigneesList.FirstOrDefault(p => p.Key == consigneeKey)?.Name ?? "Unknown";
+    }
+
+    private async Task OpenAddDialog()
+    {
+        var parameters = new DialogParameters
+        {
+            ["PersonnelList"] = consigneesList
+        };
+        
+        var dialog = DialogService.Show<ScheduleDialog>("Add Schedule", parameters);
+        var result = await dialog.Result;
+        
+        if (!result.Canceled)
+        {
+            var newSchedule = (Schedule)result.Data;
+            await ExcelService.AddScheduleAsync(newSchedule);
+            await RefreshData();
+            Snackbar.Add("Schedule added successfully", Severity.Success);
+        }
+    }
+
+    private async Task OpenEditDialog(Schedule schedule)
+    {
+        var parameters = new DialogParameters
+        {
+            ["Schedule"] = schedule,
+            ["ConsigneesList"] = consigneesList
+        };
+        
+        var dialog = DialogService.Show<ScheduleDialog>("Edit Schedule", parameters);
+        var result = await dialog.Result;
+        
+        if (!result.Canceled)
+        {
+            var updatedSchedule = (Schedule)result.Data;
+            await ExcelService.UpdateScheduleAsync(updatedSchedule);
+            await RefreshData();
+            Snackbar.Add("Schedule updated successfully", Severity.Success);
+        }
+    }
+
+    private async Task OpenDeleteDialog(Schedule schedule)
+    {
+        var parameters = new DialogParameters
+        {
+            ["ContentText"] = $"Are you sure you want to delete this schedule? This action cannot be undone."
+        };
+        
+        var dialog = DialogService.Show<ConfirmDialog>("Confirm Delete", parameters);
+        var result = await dialog.Result;
+        
+        if (!result.Canceled)
+        {
+            await ExcelService.DeleteScheduleAsync(schedule.LineNumber);
+            await RefreshData();
+            Snackbar.Add("Schedule deleted successfully", Severity.Success);
+        }
+    }
+}

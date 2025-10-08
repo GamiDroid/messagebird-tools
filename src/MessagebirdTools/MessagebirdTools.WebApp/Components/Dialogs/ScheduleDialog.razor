@@ -1,0 +1,73 @@
+@using MessagebirdTools.ExcelSchedule
+@using MessagebirdTools.WebApp.Models
+
+<MudDialog>
+    <DialogContent>
+        <MudDatePicker @bind-Date="fromDate" Label="From Date" Required="true" />
+        <MudTimePicker @bind-Time="fromTime" Label="From Time" Required="true" />
+        <MudDatePicker @bind-Date="toDate" Label="To Date" Required="true" />
+        <MudTimePicker @bind-Time="toTime" Label="To Time" Required="true" />
+        
+        <MudSelect T="string" Label="Personnel" @bind-Value="schedule.Consignee" Required="true">
+            @foreach (var consignee in ConsigneesList)
+            {
+                <MudSelectItem Value="@consignee.Key">@consignee.Name</MudSelectItem>
+            }
+        </MudSelect>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Submit</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public Schedule? Schedule { get; set; }
+    [Parameter] public List<Consignee> ConsigneesList { get; set; } = new();
+
+    private Schedule schedule = new();
+    private DateTime? fromDate;
+    private TimeSpan? fromTime;
+    private DateTime? toDate;
+    private TimeSpan? toTime;
+
+    protected override void OnInitialized()
+    {
+        if (Schedule != null)
+        {
+            schedule = new Schedule
+            {
+                LineNumber = Schedule.LineNumber,
+                Consignee = Schedule.Consignee,
+                From = Schedule.From,
+                To = Schedule.To
+            };
+            
+            fromDate = Schedule.From.Date;
+            fromTime = Schedule.From.TimeOfDay;
+            toDate = Schedule.To.Date;
+            toTime = Schedule.To.TimeOfDay;
+        }
+        else
+        {
+            fromDate = DateTime.Now.Date;
+            fromTime = new TimeSpan(9, 0, 0);
+            toDate = DateTime.Now.Date;
+            toTime = new TimeSpan(17, 0, 0);
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void Submit()
+    {
+        if (fromDate.HasValue && fromTime.HasValue && toDate.HasValue && toTime.HasValue)
+        {
+            schedule.From = fromDate.Value.Add(fromTime.Value);
+            schedule.To = toDate.Value.Add(toTime.Value);
+            
+            MudDialog.Close(DialogResult.Ok(schedule));
+        }
+    }
+}

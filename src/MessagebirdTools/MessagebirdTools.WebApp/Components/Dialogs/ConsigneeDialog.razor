@@ -1,0 +1,39 @@
+@using MessagebirdTools.ExcelSchedule
+@using MessagebirdTools.WebApp.Models
+
+<MudDialog>
+    <DialogContent>
+        <MudTextField @bind-Value="consignee.Name" Label="Name" Required="true" RequiredError="Name is required" />
+        <MudTextField @bind-Value="consignee.Email" Label="Email" Required="true" RequiredError="Email is required" />
+        <MudTextField @bind-Value="consignee.Phone" Label="Phone" Required="true" RequiredError="Phone is required" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Submit</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public Consignee? Consignee { get; set; }
+
+    private Consignee consignee = new("", "", "", "");
+
+    protected override void OnInitialized()
+    {
+        if (Consignee != null)
+        {
+            consignee = new Consignee
+            {
+                Key = Consignee.Key,
+                Name = Consignee.Name,
+                Email = Consignee.Email,
+                Phone = Consignee.Phone,
+            };
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void Submit() => MudDialog.Close(DialogResult.Ok(consignee));
+}

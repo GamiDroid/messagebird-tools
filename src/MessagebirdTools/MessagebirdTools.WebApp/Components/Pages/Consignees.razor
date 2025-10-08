@@ -1,0 +1,142 @@
+@page "/consignees"
+@using MessagebirdTools.WebApp.Components.Dialogs
+@using MessagebirdTools.WebApp.Models
+@using MessagebirdTools.WebApp.Services
+@using MessagebirdTools.ExcelSchedule
+@inject ExcelService ExcelService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<PageTitle>Consignees Management</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Consignees Management</MudText>
+
+@if (!isInitialized)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    <MudText>Initializing...</MudText>
+}
+else
+{
+    <MudPaper Class="pa-4 mb-4">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenAddDialog" StartIcon="@Icons.Material.Filled.PersonAdd">Add New Personnel</MudButton>
+    </MudPaper>
+
+    @if (consigneesList.Count == 0)
+    {
+        <MudAlert Severity="Severity.Info">No personnel records found. Add a new personnel record to get started.</MudAlert>
+    }
+    else
+    {
+        <MudTable Items="@consigneesList" Dense="true" Hover="true" Bordered="true" Striped="true" Filter="new Func<Consignee, bool>(FilterFunc)">
+            <ToolBarContent>
+                <MudTextField @bind-Value="searchString" Placeholder="Search" Adornment="Adornment.Start" 
+                              AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh>#</MudTh>
+                <MudTh>Name</MudTh>
+                <MudTh>Email</MudTh>
+                <MudTh>Phone</MudTh>
+                <MudTh>Actions</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Key">@context.Key</MudTd>
+                <MudTd DataLabel="Name">@context.Name</MudTd>
+                <MudTd DataLabel="Email">@context.Email</MudTd>
+                <MudTd DataLabel="Phone">@context.Phone</MudTd>
+                <MudTd>
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => OpenEditDialog(context))" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="@(() => OpenDeleteDialog(context))" />
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+}
+
+@code {
+    private bool isInitialized = false;
+    private List<Consignee> consigneesList = new();
+    private string searchString = "";
+    private string excelPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "PersonnelManagement.xlsx");
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Ensure directory exists
+        var directory = Path.GetDirectoryName(excelPath);
+        if (!Directory.Exists(directory) && directory != null)
+        {
+            Directory.CreateDirectory(directory);
+        }
+
+        await ExcelService.InitializeAsync(excelPath);
+        RefreshConsigneesList();
+        isInitialized = true;
+    }
+
+    private void RefreshConsigneesList()
+    {
+        consigneesList = ExcelService.GetAllConsignees();
+    }
+
+    private bool FilterFunc(Consignee consignee)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+            
+        return consignee.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase) ||
+               consignee.Email.Contains(searchString, StringComparison.OrdinalIgnoreCase) ||
+               consignee.Phone.Contains(searchString, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private async Task OpenAddDialog()
+    {
+        var dialog = DialogService.Show<ConsigneeDialog>("Add Personnel");
+        var result = await dialog.Result;
+        
+        if (!result.Canceled)
+        {
+            var newConsignee = (Consignee)result.Data;
+            await ExcelService.AddPersonnelAsync(newConsignee);
+            RefreshConsigneesList();
+            Snackbar.Add("Personnel added successfully", Severity.Success);
+        }
+    }
+
+    private async Task OpenEditDialog(Consignee consignee)
+    {
+        var parameters = new DialogParameters
+        {
+            ["Consignee"] = consignee
+        };
+        
+        var dialog = DialogService.Show<ConsigneeDialog>("Edit Consignee", parameters);
+        var result = await dialog.Result;
+        
+        if (!result.Canceled)
+        {
+            var updatedConsigee = (Consignee)result.Data;
+            await ExcelService.UpdateConsigneeAsync(updatedConsigee);
+            RefreshConsigneesList();
+            Snackbar.Add("Personnel updated successfully", Severity.Success);
+        }
+    }
+
+    private async Task OpenDeleteDialog(Consignee consignee)
+    {
+        var parameters = new DialogParameters
+        {
+            ["ContentText"] = $"Are you sure you want to delete {consignee.Name}? This action cannot be undone."
+        };
+        
+        var dialog = DialogService.Show<ConfirmDialog>("Confirm Delete", parameters);
+        var result = await dialog.Result;
+        
+        if (!result.Canceled)
+        {
+            await ExcelService.DeleteConsigneeAsync(consignee.Key);
+            RefreshConsigneesList();
+            Snackbar.Add("Consignee deleted successfully", Severity.Success);
+        }
+    }
+}

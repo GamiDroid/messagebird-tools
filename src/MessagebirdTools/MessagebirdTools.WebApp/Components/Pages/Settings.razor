@@ -1,0 +1,62 @@
+@page "/settings"
+@using MessagebirdTools.WebApp.Models
+@using MessagebirdTools.WebApp.Services
+@inject ExcelService ExcelService
+@inject ISnackbar Snackbar
+
+<PageTitle>Application Settings</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Application Settings</MudText>
+
+@if (!isInitialized)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    <MudText>Initializing...</MudText>
+}
+else
+{
+    <MudPaper Class="pa-4">
+        <MudForm @ref="form" @bind-IsValid="@success">
+            <MudTextField @bind-Value="settings.ApiKey" Label="API Key" />
+            <MudTextField @bind-Value="settings.DatabaseKey" Label="Database Key" />
+            <MudTextField @bind-Value="settings.DatabaseRecordKey" Label="Database Record Key" />
+            
+            <MudText Typo="Typo.body2" Class="mt-4 mb-2">Current Excel File Path</MudText>
+            
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveSettings" Class="mt-4">Save Settings</MudButton>
+        </MudForm>
+    </MudPaper>
+}
+
+@code {
+    private bool isInitialized = false;
+    private bool success = false;
+    private AppSettings settings = new();
+    private string excelPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "PersonnelManagement.xlsx");
+    private MudForm form = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Ensure directory exists
+        var directory = Path.GetDirectoryName(excelPath);
+        if (!Directory.Exists(directory) && directory != null)
+        {
+            Directory.CreateDirectory(directory);
+        }
+
+        await ExcelService.InitializeAsync(excelPath);
+        settings = ExcelService.GetSettings();
+        isInitialized = true;
+    }
+
+    private async Task SaveSettings()
+    {
+        await form.Validate();
+        
+        if (success)
+        {
+            await ExcelService.SaveSettingsAsync(settings);
+            Snackbar.Add("Settings saved successfully", Severity.Success);
+        }
+    }
+}

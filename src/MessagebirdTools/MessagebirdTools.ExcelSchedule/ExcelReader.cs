@@ -55,10 +55,10 @@ internal sealed class ExcelReader(string pathToExcel) : IDisposable
         foreach (var row in consigneesSheet.RowsUsed().Skip(1)) // Skip header row
         {
             var consignee = new Consignee(
-                Key: row.Cell(1).GetValue<string>(),
-                Name: row.Cell(2).GetValue<string>(),
-                Email: row.Cell(3).GetValue<string>(),
-                Phone: row.Cell(4).GetValue<string>()
+                key: row.Cell(1).GetValue<string>(),
+                name: row.Cell(2).GetValue<string>(),
+                email: row.Cell(3).GetValue<string>(),
+                phone: row.Cell(4).GetValue<string>()
             );
             consignees.Add(consignee);
         }
@@ -78,11 +78,11 @@ internal sealed class ExcelReader(string pathToExcel) : IDisposable
             var toTime = row.Cell(4).GetValue<TimeSpan>();
 
             var schedule = new Schedule(
-                LineNumber: row.RowNumber(),
+                lineNumber: row.RowNumber(),
                 // Read dates and times, convert to UTC
-                From: new DateTime(fromDate.Year, fromDate.Month, fromDate.Day, fromTime.Hours, fromTime.Minutes, fromTime.Seconds, DateTimeKind.Local).ToUniversalTime(),
-                To: new DateTime(toDate.Year, toDate.Month, toDate.Day, toTime.Hours, toTime.Minutes, toTime.Seconds, DateTimeKind.Local).ToUniversalTime(),
-                Consignee: row.Cell(5).GetValue<string>()
+                from: new DateTime(fromDate.Year, fromDate.Month, fromDate.Day, fromTime.Hours, fromTime.Minutes, fromTime.Seconds, DateTimeKind.Local).ToUniversalTime(),
+                to: new DateTime(toDate.Year, toDate.Month, toDate.Day, toTime.Hours, toTime.Minutes, toTime.Seconds, DateTimeKind.Local).ToUniversalTime(),
+                consignee: row.Cell(5).GetValue<string>()
             );
             schedules.Add(schedule);
         }
