@@ -4,6 +4,7 @@
 @using MessagebirdTools.WebApp.Models
 @using MessagebirdTools.WebApp.Services
 @inject ExcelService ExcelService
+@inject FilePathService FilePathService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
@@ -22,26 +23,17 @@ else
         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenAddDialog" StartIcon="@Icons.Material.Filled.AddAlarm">Add New Schedule</MudButton>
     </MudPaper>
 
-    <MudDateRangePicker @bind-DateRange="dateRange" Label="Filter by Date Range" AutoClose="true" />
-    <MudSelect T="string" Label="Filter by Consignee" @bind-Value="selectedConsigneeKey">
-        <MudSelectItem Value="string.Empty">All Consignees</MudSelectItem>
-        @foreach (var consignee in consigneesList)
-        {
-            <MudSelectItem Value="@consignee.Key">@consignee.Name</MudSelectItem>
-        }
-    </MudSelect>
-
-    @if (filteredSchedules.Count == 0)
+    @if (scheduleList.Count == 0)
     {
         <MudAlert Severity="Severity.Info">No schedules found. Add a new schedule to get started.</MudAlert>
     }
     else
     {
-        <MudTable Items="@filteredSchedules" Dense="true" Hover="true" Bordered="true" Striped="true">
+        <MudTable Items="@scheduleList" Hover="true">
             <HeaderContent>
                 <MudTh>From</MudTh>
                 <MudTh>To</MudTh>
-                <MudTh>Personnel</MudTh>
+                <MudTh>Consignee</MudTh>
                 <MudTh>Actions</MudTh>
             </HeaderContent>
             <RowTemplate>
@@ -61,40 +53,24 @@ else
     private bool isInitialized = false;
     private List<Schedule> scheduleList = new();
     private List<Consignee> consigneesList = new();
-    private List<Schedule> filteredSchedules = new();
-    private DateRange dateRange = new(DateTime.Now.Date, DateTime.Now.Date.AddDays(30));
     private string selectedConsigneeKey = "";
-    private string excelPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "PersonnelManagement.xlsx");
 
     protected override async Task OnInitializedAsync()
     {
-        // Ensure directory exists
-        var directory = Path.GetDirectoryName(excelPath);
-        if (!Directory.Exists(directory) && directory != null)
-        {
-            Directory.CreateDirectory(directory);
-        }
+        await FilePathService.InitializeAsync();
 
-        await ExcelService.InitializeAsync(excelPath);
-        await RefreshData();
-        isInitialized = true;
+        if (FilePathService.HasValidPath)
+        {
+            await ExcelService.InitializeAsync(FilePathService.CurrentPath!);
+            await RefreshData();
+            isInitialized = true;
+        }
     }
 
     private async Task RefreshData()
     {
         scheduleList = await ExcelService.GetAllSchedulesAsync();
         consigneesList = ExcelService.GetAllConsignees();
-        ApplyFilters();
-    }
-
-    private void ApplyFilters()
-    {
-        filteredSchedules = scheduleList
-            .Where(s => (dateRange.Start == null || s.From >= dateRange.Start) && 
-                       (dateRange.End == null || s.From <= dateRange.End))
-            .Where(s => string.IsNullOrEmpty(selectedConsigneeKey) || s.Consignee == selectedConsigneeKey)
-            .OrderBy(s => s.From)
-            .ToList();
     }
 
     private string GetConsigneeName(string? consigneeKey)
@@ -106,7 +82,7 @@ else
     {
         var parameters = new DialogParameters
         {
-            ["PersonnelList"] = consigneesList
+            ["ConsigneesList"] = consigneesList
         };
         
         var dialog = DialogService.Show<ScheduleDialog>("Add Schedule", parameters);

@@ -1,4 +1,10 @@
-﻿@inherits LayoutComponentBase
+﻿@using MessagebirdTools.WebApp.Services
+@using MessagebirdTools.WebApp.Components
+@inherits LayoutComponentBase
+@inject IDialogService DialogService
+@inject FilePathService FilePathService
+@inject NavigationManager NavigationManager
+@implements IDisposable
 
 <MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode" />
 <MudPopoverProvider />
@@ -31,6 +37,7 @@
     private bool _drawerOpen = true;
     private bool _isDarkMode = true;
     private MudTheme? _theme = null;
+    bool _filePathChecked = false;
 
     protected override void OnInitialized()
     {
@@ -42,6 +49,43 @@
             PaletteDark = _darkPalette,
             LayoutProperties = new LayoutProperties()
         };
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await CheckExcelFilePath();
+        }
+    }
+
+    private async Task CheckExcelFilePath()
+    {
+        if (!_filePathChecked)
+        {
+            _filePathChecked = true;
+
+            // Only check if we're not on the settings page
+            if (!NavigationManager.Uri.EndsWith("/settings", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!FilePathService.HasValidPath)
+                {
+                    var dialog = DialogService.Show<FileSelector>("Excel File Selection");
+                    var result = await dialog.Result;
+
+                    if (result.Canceled)
+                    {
+                        // Redirect to settings if user cancels
+                        NavigationManager.NavigateTo("/settings");
+                    }
+                }
+            }
+        }
+    }
+
+    public void Dispose()
+    {
+        FilePathService.OnPathChanged -= StateHasChanged;
     }
 
 

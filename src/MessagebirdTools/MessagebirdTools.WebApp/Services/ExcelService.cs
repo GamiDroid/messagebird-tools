@@ -160,17 +160,17 @@ public class ExcelService : IDisposable
         
         foreach (var row in scheduleSheet.RowsUsed().Skip(1)) // Skip header row
         {
-            var fromDate = row.Cell(2).GetValue<DateTime>();
-            var fromTime = row.Cell(3).GetValue<TimeSpan>();
-            
-            var toDate = row.Cell(4).GetValue<DateTime>();
-            var toTime = row.Cell(5).GetValue<TimeSpan>();
+            var fromDate = row.Cell(1).GetValue<DateTime>();
+            var fromTime = row.Cell(2).GetValue<TimeSpan>();
+
+            var toDate = row.Cell(3).GetValue<DateTime>();
+            var toTime = row.Cell(4).GetValue<TimeSpan>();
 
             var schedule = new Schedule(
                 lineNumber: row.RowNumber(),
                 from: new DateTime(fromDate.Year, fromDate.Month, fromDate.Day, fromTime.Hours, fromTime.Minutes, fromTime.Seconds),
                 to: new DateTime(toDate.Year, toDate.Month, toDate.Day, toTime.Hours, toTime.Minutes, toTime.Seconds),
-                consignee: row.Cell(6).GetValue<string>());
+                consignee: row.Cell(5).GetValue<string>());
 
             schedules.Add(schedule);
         }

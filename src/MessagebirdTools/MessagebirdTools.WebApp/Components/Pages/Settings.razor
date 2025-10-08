@@ -2,6 +2,7 @@
 @using MessagebirdTools.WebApp.Models
 @using MessagebirdTools.WebApp.Services
 @inject ExcelService ExcelService
+@inject FilePathService FilePathService
 @inject ISnackbar Snackbar
 
 <PageTitle>Application Settings</PageTitle>
@@ -37,16 +38,19 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        // Ensure directory exists
-        var directory = Path.GetDirectoryName(excelPath);
-        if (!Directory.Exists(directory) && directory != null)
-        {
-            Directory.CreateDirectory(directory);
-        }
+        await FilePathService.InitializeAsync();
 
-        await ExcelService.InitializeAsync(excelPath);
+        if (FilePathService.HasValidPath)
+        {
+            await ExcelService.InitializeAsync(FilePathService.CurrentPath!);
+            RefreshData();
+            isInitialized = true;
+        }
+    }
+
+    private void RefreshData()
+    {
         settings = ExcelService.GetSettings();
-        isInitialized = true;
     }
 
     private async Task SaveSettings()

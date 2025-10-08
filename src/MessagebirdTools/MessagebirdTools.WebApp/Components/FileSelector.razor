@@ -1,0 +1,148 @@
+@using Microsoft.AspNetCore.Components.Forms
+@using MessagebirdTools.WebApp.Services
+@inject FilePathService FilePathService
+@inject ExcelService ExcelService
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Excel File Selection</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText Class="mb-4">Please select an Excel file for the application to use or specify a location to create a new one.</MudText>
+        
+        <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+            <MudTabPanel Text="Select Existing File">
+                <MudText>Enter the full path to an existing Excel file:</MudText>
+                <MudTextField @bind-Value="existingFilePath" Label="File Path" 
+                             Adornment="Adornment.End"
+                             AdornmentIcon="@Icons.Material.Filled.FolderOpen"
+                             OnAdornmentClick="OpenFilePicker" />
+            </MudTabPanel>
+            <MudTabPanel Text="Create New File">
+                <MudText>Enter a path where the new Excel file should be saved:</MudText>
+                <MudTextField @bind-Value="newFilePath" Label="Save Location" 
+                             Adornment="Adornment.End"
+                             AdornmentIcon="@Icons.Material.Filled.FolderOpen" 
+                             OnAdornmentClick="OpenSavePicker" />
+            </MudTabPanel>
+        </MudTabs>
+        
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <MudAlert Severity="Severity.Error" Class="mt-3">@errorMessage</MudAlert>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit">Submit</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+
+    private string existingFilePath = string.Empty;
+    private string newFilePath = string.Empty;
+    private string errorMessage = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        var currentPath = FilePathService.CurrentPath;
+        if (!string.IsNullOrEmpty(currentPath))
+        {
+            existingFilePath = currentPath;
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task Submit()
+    {
+        errorMessage = string.Empty;
+        
+        try
+        {
+            if (!string.IsNullOrEmpty(existingFilePath))
+            {
+                // Check if the file exists
+                if (!File.Exists(existingFilePath))
+                {
+                    errorMessage = "The specified file does not exist.";
+                    return;
+                }
+                
+                // Try to validate that it's a valid Excel file
+                if (!existingFilePath.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase) &&
+                    !existingFilePath.EndsWith(".xls", StringComparison.OrdinalIgnoreCase))
+                {
+                    errorMessage = "The file must be an Excel file (.xlsx or .xls).";
+                    return;
+                }
+
+                await FilePathService.SetPathAsync(existingFilePath);
+                await ExcelService.InitializeAsync(existingFilePath);
+                MudDialog.Close(DialogResult.Ok(existingFilePath));
+            }
+            else if (!string.IsNullOrEmpty(newFilePath))
+            {
+                // Ensure the directory exists
+                var directory = Path.GetDirectoryName(newFilePath);
+                if (string.IsNullOrEmpty(directory))
+                {
+                    errorMessage = "Invalid directory path.";
+                    return;
+                }
+                
+                if (!Directory.Exists(directory))
+                {
+                    try
+                    {
+                        Directory.CreateDirectory(directory);
+                    }
+                    catch (Exception ex)
+                    {
+                        errorMessage = $"Failed to create directory: {ex.Message}";
+                        return;
+                    }
+                }
+
+                // Add .xlsx extension if needed
+                if (!newFilePath.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
+                {
+                    newFilePath += ".xlsx";
+                }
+                
+                await FilePathService.SetPathAsync(newFilePath);
+                await ExcelService.InitializeAsync(newFilePath);
+                MudDialog.Close(DialogResult.Ok(newFilePath));
+            }
+            else
+            {
+                errorMessage = "Please specify either an existing file or a save location for a new file.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred: {ex.Message}";
+        }
+    }
+
+    private void OpenFilePicker()
+    {
+        // Note: In Blazor Server, you can't directly access the file system
+        // This is just a placeholder - in a real app, you'd need a different approach
+        // such as a file input element or a native desktop integration
+        Snackbar.Add("File selection dialog not supported in browser. Please enter path manually.", Severity.Info);
+    }
+    
+    private void OpenSavePicker()
+    {
+        // Same limitation as above
+        Snackbar.Add("Save dialog not supported in browser. Please enter path manually.", Severity.Info);
+    }
+}

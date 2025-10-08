@@ -4,6 +4,7 @@
 @using MessagebirdTools.WebApp.Services
 @using MessagebirdTools.ExcelSchedule
 @inject ExcelService ExcelService
+@inject FilePathService FilePathService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
@@ -28,7 +29,7 @@ else
     }
     else
     {
-        <MudTable Items="@consigneesList" Dense="true" Hover="true" Bordered="true" Striped="true" Filter="new Func<Consignee, bool>(FilterFunc)">
+        <MudTable Items="@consigneesList" Hover="true" Filter="new Func<Consignee, bool>(FilterFunc)">
             <ToolBarContent>
                 <MudTextField @bind-Value="searchString" Placeholder="Search" Adornment="Adornment.Start" 
                               AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
@@ -62,16 +63,14 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        // Ensure directory exists
-        var directory = Path.GetDirectoryName(excelPath);
-        if (!Directory.Exists(directory) && directory != null)
-        {
-            Directory.CreateDirectory(directory);
-        }
+        await FilePathService.InitializeAsync();
 
-        await ExcelService.InitializeAsync(excelPath);
-        RefreshConsigneesList();
-        isInitialized = true;
+        if (FilePathService.HasValidPath)
+        {
+            await ExcelService.InitializeAsync(FilePathService.CurrentPath!);
+            RefreshConsigneesList();
+            isInitialized = true;
+        }
     }
 
     private void RefreshConsigneesList()
