@@ -4,12 +4,14 @@
 @inject IDialogService DialogService
 @inject FilePathService FilePathService
 @inject NavigationManager NavigationManager
+@inject ThemeService ThemeService
 @implements IDisposable
 
 <MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode" />
 <MudPopoverProvider />
-<MudDialogProvider />
+<MudDialogProvider MaxWidth="MaxWidth.Medium" FullWidth="true" />
 <MudSnackbarProvider />
+<RadzenComponents @rendermode="InteractiveServer" />
 <MudLayout>
     <MudAppBar Elevation="1">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
@@ -49,6 +51,8 @@
             PaletteDark = _darkPalette,
             LayoutProperties = new LayoutProperties()
         };
+
+        ThemeService.SetTheme(DarkLightModeMaterialTheme);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -97,6 +101,7 @@
     private void DarkModeToggle()
     {
         _isDarkMode = !_isDarkMode;
+        ThemeService.SetTheme(DarkLightModeMaterialTheme, triggerChange: true);
     }
 
     private readonly PaletteLight _lightPalette = new()
@@ -142,6 +147,12 @@
     {
         true => Icons.Material.Rounded.AutoMode,
         false => Icons.Material.Outlined.DarkMode,
+    };
+
+    public string DarkLightModeMaterialTheme => _isDarkMode switch
+    {
+        true => "material-dark",
+        false => "material"
     };
 }
 

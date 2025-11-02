@@ -2,7 +2,7 @@
   "profiles": {
     "MessagebirdTools.ExcelSchedule": {
       "commandName": "Project",
-      "commandLineArgs": "\"C:\\Users\\kdamen\\Downloads\\excel-schedule-test.xlsx\""
+      "commandLineArgs": "\"C:\\Users\\kdamen\\Batenburg Techniek N.V\\Merba - Documents\\SLA Rooster\\sla-excel-schedule-merba.xlsx\""
     }
   }
 }

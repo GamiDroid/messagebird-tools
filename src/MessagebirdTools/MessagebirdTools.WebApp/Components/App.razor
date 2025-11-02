@@ -9,12 +9,14 @@
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />  
     <link rel="icon" type="image/ico" href="favicon.ico" />
     <HeadOutlet @rendermode="InteractiveServer" />
+    <RadzenTheme Theme="material" />
 </head>
 
 <body>
     <Routes @rendermode="InteractiveServer" />
     <script src="_framework/blazor.web.js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+    <script src="_content/Radzen.Blazor/Radzen.Blazor.js?v=@(typeof(Radzen.Colors).Assembly.GetName().Version)"></script>
 </body>
 
 </html>

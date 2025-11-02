@@ -47,11 +47,11 @@ internal class ImportValidator(ICollection<Consignee> consignees, ICollection<Sc
             {
                 errors.Add($"Schedule 'l{schedule.LineNumber}' has an empty Consignee.");
             }
-            if (schedule.From == DateTime.MinValue)
+            if (schedule.From == DateTimeOffset.MinValue)
             {
                 errors.Add($"Schedule 'l{schedule.LineNumber}' has an empty From.");
             }
-            if (schedule.To == DateTime.MinValue)
+            if (schedule.To == DateTimeOffset.MinValue)
             {
                 errors.Add($"Schedule 'l{schedule.LineNumber}' has an empty To.");
             }

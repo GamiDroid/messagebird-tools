@@ -1,4 +1,4 @@
-@page "/scheduling"
+﻿@page "/scheduling"
 @using MessagebirdTools.ExcelSchedule
 @using MessagebirdTools.WebApp.Components.Dialogs
 @using MessagebirdTools.WebApp.Models
@@ -7,10 +7,9 @@
 @inject FilePathService FilePathService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
+@inject TooltipService TooltipService
 
 <PageTitle>Scheduling Management</PageTitle>
-
-<MudText Typo="Typo.h3" GutterBottom="true">Scheduling Management</MudText>
 
 @if (!isInitialized)
 {
@@ -20,7 +19,7 @@
 else
 {
     <MudPaper Class="pa-4 mb-4">
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenAddDialog" StartIcon="@Icons.Material.Filled.AddAlarm">Add New Schedule</MudButton>
+    <MudButton Variant="MudBlazor.Variant.Filled" Color="Color.Primary" OnClick="OpenAddDialog" StartIcon="@Icons.Material.Filled.AddAlarm">Add New Schedule</MudButton>
     </MudPaper>
 
     @if (scheduleList.Count == 0)
@@ -29,23 +28,14 @@ else
     }
     else
     {
-        <MudTable Items="@scheduleList" Hover="true">
-            <HeaderContent>
-                <MudTh>From</MudTh>
-                <MudTh>To</MudTh>
-                <MudTh>Consignee</MudTh>
-                <MudTh>Actions</MudTh>
-            </HeaderContent>
-            <RowTemplate>
-                <MudTd DataLabel="From">@context.From.ToString("g")</MudTd>
-                <MudTd DataLabel="To">@context.To.ToString("g")</MudTd>
-                <MudTd DataLabel="Consignee">@GetConsigneeName(context.Consignee)</MudTd>
-                <MudTd>
-                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => OpenEditDialog(context))" />
-                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="@(() => OpenDeleteDialog(context))" />
-                </MudTd>
-            </RowTemplate>
-        </MudTable>
+        <RadzenScheduler TItem="ScheduleAppointment" 
+                         Data=@appointments StartProperty="Start" EndProperty="End"
+                         TextProperty="Text" SelectedIndex="2" AppointmentMouseEnter=@OnAppointmentMouseEnter AppointmentMouseLeave=@OnAppointmentMouseLeave>
+            <RadzenDayView />
+            <RadzenWeekView />
+            <RadzenMonthView />
+            <RadzenYearView />
+        </RadzenScheduler>
     }
 }
 
@@ -54,6 +44,8 @@ else
     private List<Schedule> scheduleList = new();
     private List<Consignee> consigneesList = new();
     private string selectedConsigneeKey = "";
+    private RadzenScheduler<ScheduleAppointment>? scheduler;
+    private IList<ScheduleAppointment> appointments = new List<ScheduleAppointment>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -67,15 +59,102 @@ else
         }
     }
 
+    void OnAppointmentMouseEnter(SchedulerAppointmentMouseEventArgs<ScheduleAppointment> args)
+    {
+        TooltipService.Open(args.Element, ts =>
+        @<RadzenStack Orientation="Radzen.Orientation.Vertical" Gap="0" class="rz-p-6" Style="min-width: 250px; max-width: 500px;">
+            <RadzenText TextStyle="TextStyle.H4" class="rz-mb-4" Style="color: var(--rz-tooltip-color);">
+                @args.Data.Text
+            </RadzenText>
+            <RadzenStack Orientation="Radzen.Orientation.Horizontal" Gap="4px">
+                <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-tooltip-color); width: 44px;">
+                    <strong>Start</strong>
+                </RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-tooltip-color);">
+                    @args.Data.Start.ToString("hh:mm ⋅ dddd, MMMM d")
+                </RadzenText>
+            </RadzenStack>
+            <RadzenStack Orientation="Radzen.Orientation.Horizontal" Gap="4px">
+                <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-tooltip-color); width: 44px;">
+                    <strong>End</strong>
+                </RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-tooltip-color);">
+                    @args.Data.End.ToString("hh:mm ⋅ dddd, MMMM d")
+                </RadzenText>
+            </RadzenStack>
+        </RadzenStack>, new TooltipOptions { Position = TooltipPosition.Top, Duration = null });
+    }
+
+    void OnAppointmentMouseLeave(SchedulerAppointmentMouseEventArgs<ScheduleAppointment> args)
+    {
+        TooltipService.Close();
+    }
+
     private async Task RefreshData()
     {
         scheduleList = await ExcelService.GetAllSchedulesAsync();
         consigneesList = ExcelService.GetAllConsignees();
+        UpdateAppointments();
     }
 
-    private string GetConsigneeName(string? consigneeKey)
+    private void UpdateAppointments()
     {
+        appointments = scheduleList.Select(s => new ScheduleAppointment
+        {
+            Start = s.From.LocalDateTime,
+            End = s.To.LocalDateTime,
+            Text = GetConsigneeName(s.Consignee),
+            ConsigneeKey = s.Consignee,
+            LineNumber = s.LineNumber
+        }).ToList();
+    }
+
+  private string GetConsigneeName(string? consigneeKey)
+  {
         return consigneesList.FirstOrDefault(p => p.Key == consigneeKey)?.Name ?? "Unknown";
+  }
+
+    void OnSlotRender(SchedulerSlotRenderEventArgs args)
+    {
+        // You can customize the appearance of slots here if needed
+    }
+
+    void OnAppointmentRender(SchedulerAppointmentRenderEventArgs<ScheduleAppointment> args)
+    {
+        // You can customize the appearance of appointments here if needed
+    }
+
+    async Task OnAppointmentSelect(SchedulerAppointmentSelectEventArgs<ScheduleAppointment> args)
+    {
+        var schedule = scheduleList.FirstOrDefault(s => s.LineNumber == args.Data.LineNumber);
+        if (schedule != null)
+        {
+            await OpenEditDialog(schedule);
+        }
+    }
+
+    async Task OnSlotSelect(SchedulerSlotSelectEventArgs args)
+    {
+        var parameters = new DialogParameters
+        {
+            ["ConsigneesList"] = consigneesList,
+            ["Schedule"] = new Schedule
+            {
+                From = args.Start,
+                To = args.End
+            }
+        };
+        
+        var dialog = DialogService.Show<ScheduleDialog>("Add Schedule", parameters);
+        var result = await dialog.Result;
+        
+        if (!result.Canceled)
+        {
+            var newSchedule = (Schedule)result.Data;
+            await ExcelService.AddScheduleAsync(newSchedule);
+            await RefreshData();
+            Snackbar.Add("Schedule added successfully", Severity.Success);
+        }
     }
 
     private async Task OpenAddDialog()
@@ -84,7 +163,7 @@ else
         {
             ["ConsigneesList"] = consigneesList
         };
-        
+    
         var dialog = DialogService.Show<ScheduleDialog>("Add Schedule", parameters);
         var result = await dialog.Result;
         
@@ -107,7 +186,7 @@ else
         
         var dialog = DialogService.Show<ScheduleDialog>("Edit Schedule", parameters);
         var result = await dialog.Result;
-        
+   
         if (!result.Canceled)
         {
             var updatedSchedule = (Schedule)result.Data;
@@ -123,15 +202,24 @@ else
         {
             ["ContentText"] = $"Are you sure you want to delete this schedule? This action cannot be undone."
         };
-        
+      
         var dialog = DialogService.Show<ConfirmDialog>("Confirm Delete", parameters);
         var result = await dialog.Result;
-        
+   
         if (!result.Canceled)
         {
             await ExcelService.DeleteScheduleAsync(schedule.LineNumber);
             await RefreshData();
             Snackbar.Add("Schedule deleted successfully", Severity.Success);
         }
+    }
+
+    public class ScheduleAppointment
+    {
+        public DateTime Start { get; set; }
+        public DateTime End { get; set; }
+        public string Text { get; set; }
+        public string ConsigneeKey { get; set; }
+        public int LineNumber { get; set; }
     }
 }

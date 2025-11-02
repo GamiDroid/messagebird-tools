@@ -1,11 +1,15 @@
 using MessagebirdTools.WebApp.Components;
 using MessagebirdTools.WebApp.Services;
 using MudBlazor.Services;
+using Radzen;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add MudBlazor services
 builder.Services.AddMudServices();
+
+// Add Radzen services
+builder.Services.AddRadzenComponents();
 
 builder.Services.AddScoped<FilePathService>();
 builder.Services.AddScoped<ExcelService>();
