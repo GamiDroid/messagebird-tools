@@ -30,7 +30,8 @@ else
     {
         <RadzenScheduler TItem="ScheduleAppointment" 
                          Data=@appointments StartProperty="Start" EndProperty="End"
-                         TextProperty="Text" SelectedIndex="2" AppointmentMouseEnter=@OnAppointmentMouseEnter AppointmentMouseLeave=@OnAppointmentMouseLeave>
+                         TextProperty="Text" SelectedIndex="2" SlotRender="OnSlotRender" AppointmentRender="OnAppointmentRender"
+                         AppointmentMouseEnter=@OnAppointmentMouseEnter AppointmentMouseLeave=@OnAppointmentMouseLeave>
             <RadzenDayView />
             <RadzenWeekView />
             <RadzenMonthView />
@@ -61,28 +62,31 @@ else
 
     void OnAppointmentMouseEnter(SchedulerAppointmentMouseEventArgs<ScheduleAppointment> args)
     {
+        var color = GetConsigneeColor(consigneesList, args.Data.ConsigneeKey);
+
         TooltipService.Open(args.Element, ts =>
-        @<RadzenStack Orientation="Radzen.Orientation.Vertical" Gap="0" class="rz-p-6" Style="min-width: 250px; max-width: 500px;">
+            @<RadzenStack Orientation="Radzen.Orientation.Vertical" Gap="0" class="rz-p-6" Style="min-width: 250px; max-width: 500px;">
             <RadzenText TextStyle="TextStyle.H4" class="rz-mb-4" Style="color: var(--rz-tooltip-color);">
-                @args.Data.Text
-            </RadzenText>
-            <RadzenStack Orientation="Radzen.Orientation.Horizontal" Gap="4px">
+                    @args.Data.Text
+                </RadzenText>
+                <RadzenStack Orientation="Radzen.Orientation.Horizontal" Gap="4px">
                 <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-tooltip-color); width: 44px;">
-                    <strong>Start</strong>
-                </RadzenText>
+                        <strong>Start</strong>
+                    </RadzenText>
                 <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-tooltip-color);">
-                    @args.Data.Start.ToString("hh:mm ⋅ dddd, MMMM d")
-                </RadzenText>
-            </RadzenStack>
-            <RadzenStack Orientation="Radzen.Orientation.Horizontal" Gap="4px">
+                        @args.Data.Start.ToString("hh:mm ⋅ dddd, MMMM d")
+                    </RadzenText>
+                </RadzenStack>
+                <RadzenStack Orientation="Radzen.Orientation.Horizontal" Gap="4px">
                 <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-tooltip-color); width: 44px;">
-                    <strong>End</strong>
-                </RadzenText>
+                        <strong>End</strong>
+                    </RadzenText>
                 <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-tooltip-color);">
-                    @args.Data.End.ToString("hh:mm ⋅ dddd, MMMM d")
-                </RadzenText>
+                        @args.Data.End.ToString("hh:mm ⋅ dddd, MMMM d")
+                    </RadzenText>
+                </RadzenStack>
             </RadzenStack>
-        </RadzenStack>, new TooltipOptions { Position = TooltipPosition.Top, Duration = null });
+    , new TooltipOptions { Position = TooltipPosition.Top, Duration = null, Style = $"background: {color}" });
     }
 
     void OnAppointmentMouseLeave(SchedulerAppointmentMouseEventArgs<ScheduleAppointment> args)
@@ -109,19 +113,50 @@ else
         }).ToList();
     }
 
-  private string GetConsigneeName(string? consigneeKey)
-  {
+    private string GetConsigneeName(string? consigneeKey)
+    {
         return consigneesList.FirstOrDefault(p => p.Key == consigneeKey)?.Name ?? "Unknown";
-  }
+    }
 
     void OnSlotRender(SchedulerSlotRenderEventArgs args)
     {
         // You can customize the appearance of slots here if needed
+
+        // Highlight today in month view
+        if (args.View.Text == "Month" && args.Start.Date == DateTime.Today)
+        {
+            args.Attributes["style"] = "background: var(--rz-scheduler-highlight-background-color, rgba(255,220,40,.2));";
+        }
     }
 
     void OnAppointmentRender(SchedulerAppointmentRenderEventArgs<ScheduleAppointment> args)
     {
         // You can customize the appearance of appointments here if needed
+        var appointment = args.Data;
+
+        var color = GetConsigneeColor(consigneesList, appointment.ConsigneeKey);
+
+        args.Attributes["style"] = $"background: {color};";
+    }
+
+    private static string GetConsigneeColor(IEnumerable<Consignee> consignees, string consigneeKey)
+    {
+        var consigneeIndex = consignees
+            .OrderBy(c => c.Key).Select((c, i) => new { Index = i, Consignee = c })
+            .FirstOrDefault(x => x.Consignee.Key == consigneeKey)?.Index;
+
+        return consigneeIndex switch
+        {
+            0 => "var(--rz-series-1)",
+            1 => "var(--rz-series-2)",
+            2 => "var(--rz-series-3)",
+            3 => "var(--rz-series-4)",
+            4 => "var(--rz-series-8)",
+            5 => "var(--rz-series-6)",
+            6 => "var(--rz-series-7)",
+            7 => "var(--rz-series-5)",
+            _ => "var(--rz-danger)"
+        };
     }
 
     async Task OnAppointmentSelect(SchedulerAppointmentSelectEventArgs<ScheduleAppointment> args)
@@ -144,10 +179,10 @@ else
                 To = args.End
             }
         };
-        
+
         var dialog = DialogService.Show<ScheduleDialog>("Add Schedule", parameters);
         var result = await dialog.Result;
-        
+
         if (!result.Canceled)
         {
             var newSchedule = (Schedule)result.Data;
@@ -163,10 +198,10 @@ else
         {
             ["ConsigneesList"] = consigneesList
         };
-    
+
         var dialog = DialogService.Show<ScheduleDialog>("Add Schedule", parameters);
         var result = await dialog.Result;
-        
+
         if (!result.Canceled)
         {
             var newSchedule = (Schedule)result.Data;
@@ -183,10 +218,10 @@ else
             ["Schedule"] = schedule,
             ["ConsigneesList"] = consigneesList
         };
-        
+
         var dialog = DialogService.Show<ScheduleDialog>("Edit Schedule", parameters);
         var result = await dialog.Result;
-   
+
         if (!result.Canceled)
         {
             var updatedSchedule = (Schedule)result.Data;
@@ -202,10 +237,10 @@ else
         {
             ["ContentText"] = $"Are you sure you want to delete this schedule? This action cannot be undone."
         };
-      
+
         var dialog = DialogService.Show<ConfirmDialog>("Confirm Delete", parameters);
         var result = await dialog.Result;
-   
+
         if (!result.Canceled)
         {
             await ExcelService.DeleteScheduleAsync(schedule.LineNumber);
