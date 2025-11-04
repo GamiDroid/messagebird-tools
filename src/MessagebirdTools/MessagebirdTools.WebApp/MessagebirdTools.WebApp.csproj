@@ -8,12 +8,11 @@
 
   <ItemGroup>
     <PackageReference Include="MudBlazor" Version="7.*" />
-    <PackageReference Include="ClosedXML" Version="0.105.0" />
     <PackageReference Include="Radzen.Blazor" Version="8.1.8" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MessagebirdTools.ExcelSchedule\MessagebirdTools.ExcelSchedule.csproj" />
+    <ProjectReference Include="..\MessagebirdTools.Core\MessagebirdTools.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

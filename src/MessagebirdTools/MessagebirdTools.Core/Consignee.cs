@@ -1,4 +1,4 @@
-﻿namespace MessagebirdTools.ExcelSchedule;
+﻿namespace MessagebirdTools;
 
 public class Consignee
 {

@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessagebirdTools.ExcelSched
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessagebirdTools.WebApp", "MessagebirdTools.WebApp\MessagebirdTools.WebApp.csproj", "{7E87620F-0F0C-4B07-A5A2-F60BBE921D7A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessagebirdTools.Core", "MessagebirdTools.Core\MessagebirdTools.Core.csproj", "{5B3F3F86-AC3F-4758-9525-32F33138DCE2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{7E87620F-0F0C-4B07-A5A2-F60BBE921D7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7E87620F-0F0C-4B07-A5A2-F60BBE921D7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7E87620F-0F0C-4B07-A5A2-F60BBE921D7A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B3F3F86-AC3F-4758-9525-32F33138DCE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B3F3F86-AC3F-4758-9525-32F33138DCE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B3F3F86-AC3F-4758-9525-32F33138DCE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B3F3F86-AC3F-4758-9525-32F33138DCE2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

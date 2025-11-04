@@ -1,3 +1,3 @@
-﻿namespace MessagebirdTools.ExcelSchedule;
+﻿namespace MessagebirdTools;
 
 public record MbDbRow(string Key, string Value);

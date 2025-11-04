@@ -1,8 +1,8 @@
 ﻿
 using ClosedXML.Excel;
 
-namespace MessagebirdTools.ExcelSchedule;
-internal sealed class ExcelReader(string pathToExcel) : IDisposable
+namespace MessagebirdTools;
+public sealed class ExcelReader(string pathToExcel) : IDisposable
 {
     private readonly XLWorkbook _workbook = new(pathToExcel);
 

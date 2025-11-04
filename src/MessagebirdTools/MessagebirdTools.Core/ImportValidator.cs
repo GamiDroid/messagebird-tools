@@ -1,5 +1,5 @@
-﻿namespace MessagebirdTools.ExcelSchedule;
-internal class ImportValidator(ICollection<Consignee> consignees, ICollection<Schedule> schedules)
+﻿namespace MessagebirdTools;
+public class ImportValidator(ICollection<Consignee> consignees, ICollection<Schedule> schedules)
 {
     private readonly ICollection<Consignee> _consignees = consignees;
     private readonly ICollection<Schedule> _schedules = schedules;
