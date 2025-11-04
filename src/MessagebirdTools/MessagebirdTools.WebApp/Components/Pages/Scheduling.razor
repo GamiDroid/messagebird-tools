@@ -11,6 +11,30 @@
 
 <PageTitle>Scheduling Management</PageTitle>
 
+<style>
+    .schedule-container {
+        height: calc(100vh - 100px);
+        overflow: hidden;
+    }
+
+    .schedule-content {
+        height: calc(100% - 80px); /* Adjust based on header height */
+    }
+
+    .scrollable-panel {
+        height: 100%;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .scroll-content {
+        flex: 1;
+        overflow: auto;
+        min-height: 0;
+    }
+</style>
+
 @if (!isInitialized)
 {
     <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
@@ -18,61 +42,80 @@
 }
 else
 {
-    <MudPaper Class="pa-4 mb-4">
-        <MudStack Row="true" Spacing="2">
-            <MudButton Variant="MudBlazor.Variant.Filled" Color="Color.Primary" OnClick="OpenAddDialog" StartIcon="@Icons.Material.Filled.AddAlarm">Add New Schedule</MudButton>
-            <MudSpacer />
-            <MudSwitch @bind-Value="@showTable" Color="Color.Primary" Label="Show Table" />
-            <MudSwitch @bind-Value="@showCalendar" Color="Color.Primary" Label="Show Calendar" />
-        </MudStack>
-    </MudPaper>
+    <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="schedule-container pa-4">
+        <MudPaper Class="pa-4 mb-4">
+            <MudStack Row="true" Spacing="2">
+                <MudButton Variant="MudBlazor.Variant.Filled" Color="Color.Primary" OnClick="OpenAddDialog" StartIcon="@Icons.Material.Filled.AddAlarm">Add New Schedule</MudButton>
+                <MudSpacer />
+                <MudSwitch @bind-Value="@showTable" Color="Color.Primary" Label="Show Table" />
+                <MudSwitch @bind-Value="@showCalendar" Color="Color.Primary" Label="Show Calendar" />
+            </MudStack>
+        </MudPaper>
 
-    @if (scheduleList.Count == 0)
-    {
-        <MudAlert Severity="Severity.Info">No schedules found. Add a new schedule to get started.</MudAlert>
-    }
-    else
-    {
-        @if (showTable)
+        @if (scheduleList.Count == 0)
         {
-             <MudPaper Class="pa-4 mb-4">
-                <MudTable Items="@scheduleList" Dense="true" Hover="true" Bordered="true" Striped="true">
-                    <HeaderContent>
-                        <MudTh>Consignee</MudTh>
-                        <MudTh>Start Time</MudTh>
-                        <MudTh>End Time</MudTh>
-                        <MudTh Style="text-align: center">Actions</MudTh>
-                    </HeaderContent>
-                    <RowTemplate>
-                        <MudTd>@GetConsigneeName(context.Consignee)</MudTd>
-                        <MudTd>@context.From.LocalDateTime.ToString("g")</MudTd>
-                        <MudTd>@context.To.LocalDateTime.ToString("g")</MudTd>
-                        <MudTd Style="text-align: center">
-                            <MudStack Row="true" Justify="Justify.Center" Spacing="2">
-                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => OpenEditDialog(context))" />
-                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => OpenDeleteDialog(context))" />
-                            </MudStack>
-                        </MudTd>
-                    </RowTemplate>
-                </MudTable>
-            </MudPaper>
+            <MudAlert Severity="Severity.Info">No schedules found. Add a new schedule to get started.</MudAlert>
         }
+        else
+        {
+            <MudGrid Class="schedule-content">
+            @if (showTable)
+     {
+<MudItem xs="@(showCalendar ? 6 : 12)" Class="scrollable-panel">
+            <MudPaper Class="pa-4 d-flex flex-column" Style="height: 100%;">
+  <div class="scroll-content">
+    <MudTable Items="@scheduleList" Dense="true" Hover="true" Bordered="true" Striped="true" FixedHeader="true">
+        <HeaderContent>
+          <MudTh>Consignee</MudTh>
+        <MudTh>Start Time</MudTh>
+               <MudTh>End Time</MudTh>
+         <MudTh Style="text-align: center">Actions</MudTh>
+          </HeaderContent>
+     <RowTemplate>
+                    <MudTd>@GetConsigneeName(context.Consignee)</MudTd>
+   <MudTd>@context.From.LocalDateTime.ToString("g")</MudTd>
+           <MudTd>@context.To.LocalDateTime.ToString("g")</MudTd>
+        <MudTd Style="text-align: center">
+            <MudStack Row="true" Justify="Justify.Center" Spacing="2">
+   <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => OpenEditDialog(context))" />
+     <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => OpenDeleteDialog(context))" />
+                   </MudStack>
+    </MudTd>
+  </RowTemplate>
+           </MudTable>
+     </div>
+     </MudPaper>
+              </MudItem>
+     }
 
-        @if (showCalendar)
-        {
-            <RadzenScheduler TItem="ScheduleAppointment" 
-                Data=@appointments StartProperty="Start" EndProperty="End"
-                TextProperty="Text" SelectedIndex="2" SlotRender="OnSlotRender" 
-                AppointmentRender="OnAppointmentRender"
-                AppointmentMouseEnter=@OnAppointmentMouseEnter 
-                AppointmentMouseLeave=@OnAppointmentMouseLeave>
-                <RadzenDayView />
-                <RadzenWeekView />
-                <RadzenMonthView />
-                <RadzenYearView />
-            </RadzenScheduler>
+             @if (showCalendar)
+   {
+         <MudItem xs="@(showTable ? 6 : 12)" Class="scrollable-panel">
+       <MudPaper Class="pa-4 d-flex flex-column" Style="height: 100%;">
+               <div class="scroll-content">
+     <RadzenScheduler TItem="ScheduleAppointment" 
+     Data=@appointments 
+              StartProperty="Start" 
+           EndProperty="End"
+               TextProperty="Text" 
+   SelectedIndex="2" 
+     SlotRender="OnSlotRender" 
+         AppointmentRender="OnAppointmentRender"
+       AppointmentMouseEnter=@OnAppointmentMouseEnter 
+           AppointmentMouseLeave=@OnAppointmentMouseLeave
+        Style="height: 100%;">
+     <RadzenDayView />
+      <RadzenWeekView />
+ <RadzenMonthView />
+          <RadzenYearView />
+ </RadzenScheduler>
+           </div>
+  </MudPaper>
+        </MudItem>
         }
-    }
+     </MudGrid>
+        }
+    </MudContainer>
 }
 
 @code {
