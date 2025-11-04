@@ -19,7 +19,12 @@
 else
 {
     <MudPaper Class="pa-4 mb-4">
-    <MudButton Variant="MudBlazor.Variant.Filled" Color="Color.Primary" OnClick="OpenAddDialog" StartIcon="@Icons.Material.Filled.AddAlarm">Add New Schedule</MudButton>
+        <MudStack Row="true" Spacing="2">
+            <MudButton Variant="MudBlazor.Variant.Filled" Color="Color.Primary" OnClick="OpenAddDialog" StartIcon="@Icons.Material.Filled.AddAlarm">Add New Schedule</MudButton>
+            <MudSpacer />
+            <MudSwitch @bind-Value="@showTable" Color="Color.Primary" Label="Show Table" />
+            <MudSwitch @bind-Value="@showCalendar" Color="Color.Primary" Label="Show Calendar" />
+        </MudStack>
     </MudPaper>
 
     @if (scheduleList.Count == 0)
@@ -28,20 +33,52 @@ else
     }
     else
     {
-        <RadzenScheduler TItem="ScheduleAppointment" 
-                         Data=@appointments StartProperty="Start" EndProperty="End"
-                         TextProperty="Text" SelectedIndex="2" SlotRender="OnSlotRender" AppointmentRender="OnAppointmentRender"
-                         AppointmentMouseEnter=@OnAppointmentMouseEnter AppointmentMouseLeave=@OnAppointmentMouseLeave>
-            <RadzenDayView />
-            <RadzenWeekView />
-            <RadzenMonthView />
-            <RadzenYearView />
-        </RadzenScheduler>
+        @if (showTable)
+        {
+             <MudPaper Class="pa-4 mb-4">
+                <MudTable Items="@scheduleList" Dense="true" Hover="true" Bordered="true" Striped="true">
+                    <HeaderContent>
+                        <MudTh>Consignee</MudTh>
+                        <MudTh>Start Time</MudTh>
+                        <MudTh>End Time</MudTh>
+                        <MudTh Style="text-align: center">Actions</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd>@GetConsigneeName(context.Consignee)</MudTd>
+                        <MudTd>@context.From.LocalDateTime.ToString("g")</MudTd>
+                        <MudTd>@context.To.LocalDateTime.ToString("g")</MudTd>
+                        <MudTd Style="text-align: center">
+                            <MudStack Row="true" Justify="Justify.Center" Spacing="2">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => OpenEditDialog(context))" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => OpenDeleteDialog(context))" />
+                            </MudStack>
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </MudPaper>
+        }
+
+        @if (showCalendar)
+        {
+            <RadzenScheduler TItem="ScheduleAppointment" 
+                Data=@appointments StartProperty="Start" EndProperty="End"
+                TextProperty="Text" SelectedIndex="2" SlotRender="OnSlotRender" 
+                AppointmentRender="OnAppointmentRender"
+                AppointmentMouseEnter=@OnAppointmentMouseEnter 
+                AppointmentMouseLeave=@OnAppointmentMouseLeave>
+                <RadzenDayView />
+                <RadzenWeekView />
+                <RadzenMonthView />
+                <RadzenYearView />
+            </RadzenScheduler>
+        }
     }
 }
 
 @code {
     private bool isInitialized = false;
+    private bool showTable = true;
+    private bool showCalendar = true;
     private List<Schedule> scheduleList = new();
     private List<Consignee> consigneesList = new();
     private string selectedConsigneeKey = "";
@@ -86,7 +123,7 @@ else
                     </RadzenText>
                 </RadzenStack>
             </RadzenStack>
-    , new TooltipOptions { Position = TooltipPosition.Top, Duration = null, Style = $"background: {color}" });
+            , new TooltipOptions { Position = TooltipPosition.Top, Duration = null, Style = $"background: {color}" });
     }
 
     void OnAppointmentMouseLeave(SchedulerAppointmentMouseEventArgs<ScheduleAppointment> args)
