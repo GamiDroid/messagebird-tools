@@ -43,8 +43,6 @@
 
     protected override void OnInitialized()
     {
-        base.OnInitialized();
-
         _theme = new()
         {
             PaletteLight = _lightPalette,
@@ -59,6 +57,7 @@
     {
         if (firstRender)
         {
+            await FilePathService.InitializeAsync();
             await CheckExcelFilePath();
         }
     }
