@@ -11,8 +11,9 @@ builder.Services.AddMudServices();
 // Add Radzen services
 builder.Services.AddRadzenComponents();
 
-builder.Services.AddScoped<FilePathService>();
-builder.Services.AddScoped<ExcelService>();
+builder.Services.AddScoped<IFilePathService, FilePathService>();
+builder.Services.AddScoped<IExcelService, ExcelService>();
+builder.Services.AddScoped<IMessagebirdService, MessagebirdService>();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

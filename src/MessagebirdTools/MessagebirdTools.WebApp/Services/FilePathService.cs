@@ -2,7 +2,16 @@ using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
 namespace MessagebirdTools.WebApp.Services;
 
-public class FilePathService
+public interface IFilePathService
+{
+    string? CurrentPath { get; }
+    bool HasValidPath { get; }
+    event Action? OnPathChanged;
+    Task InitializeAsync();
+    Task SetPathAsync(string path);
+}
+
+public class FilePathService : IFilePathService
 {
     private readonly ProtectedLocalStorage _localStorage;
     private const string ExcelPathKey = "excel-file-path";

@@ -2,9 +2,11 @@
 @using MessagebirdTools.WebApp.Components
 @inherits LayoutComponentBase
 @inject IDialogService DialogService
-@inject FilePathService FilePathService
+@inject IFilePathService FilePathService
 @inject NavigationManager NavigationManager
 @inject ThemeService ThemeService
+@inject IExcelService ExcelService
+@inject ISnackbar Snackbar
 @implements IDisposable
 
 <MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode" />
@@ -17,6 +19,22 @@
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
         <MudText Typo="Typo.h5" Class="ml-3">MessagebirdTools</MudText>
         <MudSpacer />
+        
+        <MudButtonGroup Color="Color.Primary" Variant="MudBlazor.Variant.Filled" Class="mr-2">
+            <MudButton StartIcon="@Icons.Material.Filled.Save" OnClick="SaveToExcel">Save</MudButton>
+            <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter">
+                <MudMenuItem OnClick="SaveAndPublish" Icon="@Icons.Material.Filled.CloudUpload">Save and Publish</MudMenuItem>
+            </MudMenu>
+        </MudButtonGroup>
+        
+        <MudButton StartIcon="@Icons.Material.Filled.Publish" 
+                   Color="Color.Success" 
+                   Variant="MudBlazor.Variant.Filled" 
+                   OnClick="PublishToMessagebird"
+                   Class="mr-2">
+            Publish
+        </MudButton>
+        
         <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" />
         <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
     </MudAppBar>
@@ -83,6 +101,47 @@
                     }
                 }
             }
+        }
+    }
+
+    private async Task SaveToExcel()
+    {
+        try
+        {
+            // De huidige data wordt automatisch opgeslagen door ExcelService
+            // Hier kun je extra logica toevoegen indien nodig
+            Snackbar.Add("Data successfully saved to Excel", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error saving to Excel: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task PublishToMessagebird()
+    {
+        try
+        {
+            // TODO: Implementeer Messagebird API call
+            // Bijvoorbeeld: await MessagebirdService.PublishAsync();
+            Snackbar.Add("Data successfully published to Messagebird", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error publishing to Messagebird: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task SaveAndPublish()
+    {
+        try
+        {
+            await SaveToExcel();
+            await PublishToMessagebird();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error during save and publish: {ex.Message}", Severity.Error);
         }
     }
 

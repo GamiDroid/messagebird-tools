@@ -3,7 +3,22 @@ using MessagebirdTools.WebApp.Models;
 
 namespace MessagebirdTools.WebApp.Services;
 
-public class ExcelService : IDisposable
+public interface IExcelService
+{
+    Task InitializeAsync(string excelPath);
+    List<Consignee> GetAllConsignees();
+    Task<Consignee> AddPersonnelAsync(Consignee consignee);
+    Task UpdateConsigneeAsync(Consignee consignee);
+    Task DeleteConsigneeAsync(string key);
+    Task<List<Schedule>> GetAllSchedulesAsync();
+    Task AddScheduleAsync(Schedule schedule);
+    Task UpdateScheduleAsync(Schedule schedule);
+    Task DeleteScheduleAsync(int lineNumber);
+    AppSettings GetSettings();
+    Task SaveSettingsAsync(AppSettings settings);
+}
+
+public class ExcelService : IExcelService, IDisposable
 {
     private XLWorkbook? _workbook;
     private string _excelPath = string.Empty;
