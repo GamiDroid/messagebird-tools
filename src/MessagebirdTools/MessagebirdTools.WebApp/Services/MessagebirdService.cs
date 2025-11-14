@@ -1,6 +1,4 @@
 ﻿using MessagebirdTools.WebApp.Models;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 
 namespace MessagebirdTools.WebApp.Services;
 
@@ -9,14 +7,12 @@ public interface IMessagebirdService
     Task PublishAsync(AppSettings settings, List<Consignee> consignees, List<Schedule> schedules);
 }
 
-public class MessagebirdService : IMessagebirdService
+public class MessagebirdService(
+    IMessagebirdClient messagebirdClient,
+    ILogger<MessagebirdService> logger) : IMessagebirdService
 {
-    private readonly ILogger<MessagebirdService> _logger;
-
-    public MessagebirdService(ILogger<MessagebirdService> logger)
-    {
-        _logger = logger;
-    }
+    private readonly IMessagebirdClient _messagebirdClient = messagebirdClient;
+    private readonly ILogger<MessagebirdService> _logger = logger;
 
     public async Task PublishAsync(AppSettings settings, List<Consignee> consignees, List<Schedule> schedules)
     {
@@ -41,27 +37,12 @@ public class MessagebirdService : IMessagebirdService
 
         try
         {
-            // TODO: Implement actual Messagebird API calls here
-            // Example:
-            // using var httpClient = new HttpClient();
-            // httpClient.DefaultRequestHeaders.Add("Authorization", $"AccessKey {settings.ApiKey}");
-            //
-            // foreach (var consignee in consignees)
-            // {
-            //     var content = new StringContent(JsonSerializer.Serialize(consignee), Encoding.UTF8, "application/json");
-            //     var response = await httpClient.PostAsync($"https://api.messagebird.com/v1/databases/{settings.DatabaseKey}/records", content);
-            //     response.EnsureSuccessStatusCode();
-            // }
-            //
-            // foreach (var schedule in schedules)
-            // {
-            //     var content = new StringContent(JsonSerializer.Serialize(schedule), Encoding.UTF8, "application/json");
-            //     var response = await httpClient.PostAsync($"https://api.messagebird.com/v1/schedules", content);
-            //     response.EnsureSuccessStatusCode();
-            // }
-
-            // Simulate API call delay
-            await Task.Delay(1000);
+            await _messagebirdClient.SaveToDatabaseAsync(
+                settings.ApiKey,
+                settings.DatabaseKey,
+                settings.DatabaseRecordKey,
+                consignees,
+                schedules);
 
             _logger.LogInformation("Successfully published data to Messagebird");
         }

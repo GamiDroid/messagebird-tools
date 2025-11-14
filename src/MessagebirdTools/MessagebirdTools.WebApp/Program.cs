@@ -14,6 +14,10 @@ builder.Services.AddRadzenComponents();
 builder.Services.AddSingleton<IExcelService, ExcelService>();
 builder.Services.AddScoped<IFilePathService, FilePathService>();
 builder.Services.AddScoped<IMessagebirdService, MessagebirdService>();
+builder.Services.AddHttpClient<IMessagebirdClient, MessagebirdClient>(client =>
+{
+    client.BaseAddress = new Uri("https://flows.messagebird.com");
+});
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
