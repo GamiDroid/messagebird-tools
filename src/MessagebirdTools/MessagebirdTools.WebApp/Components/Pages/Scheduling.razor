@@ -175,9 +175,10 @@ else
 
     private async Task RefreshData()
     {
-        scheduleList = await ExcelService.GetAllSchedulesAsync();
+        scheduleList = ExcelService.GetAllSchedules();
         consigneesList = ExcelService.GetAllConsignees();
         UpdateAppointments();
+        await Task.CompletedTask;
     }
 
     private void UpdateAppointments()
@@ -265,9 +266,9 @@ else
         if (!result.Canceled)
         {
             var newSchedule = (Schedule)result.Data;
-            await ExcelService.AddScheduleAsync(newSchedule);
+            ExcelService.AddSchedule(newSchedule);
             await RefreshData();
-            Snackbar.Add("Schedule added successfully", Severity.Success);
+            Snackbar.Add("Schedule added. Click Save in the top menu to persist changes.", Severity.Success);
         }
     }
 
@@ -284,9 +285,9 @@ else
         if (!result.Canceled)
         {
             var newSchedule = (Schedule)result.Data;
-            await ExcelService.AddScheduleAsync(newSchedule);
+            ExcelService.AddSchedule(newSchedule);
             await RefreshData();
-            Snackbar.Add("Schedule added successfully", Severity.Success);
+            Snackbar.Add("Schedule added. Click Save in the top menu to persist changes.", Severity.Success);
         }
     }
 
@@ -304,9 +305,9 @@ else
         if (!result.Canceled)
         {
             var updatedSchedule = (Schedule)result.Data;
-            await ExcelService.UpdateScheduleAsync(updatedSchedule);
+            ExcelService.UpdateSchedule(updatedSchedule);
             await RefreshData();
-            Snackbar.Add("Schedule updated successfully", Severity.Success);
+            Snackbar.Add("Schedule updated. Click Save in the top menu to persist changes.", Severity.Success);
         }
     }
 
@@ -322,9 +323,9 @@ else
 
         if (!result.Canceled)
         {
-            await ExcelService.DeleteScheduleAsync(schedule.LineNumber);
+            ExcelService.DeleteSchedule(schedule.LineNumber);
             await RefreshData();
-            Snackbar.Add("Schedule deleted successfully", Severity.Success);
+            Snackbar.Add("Schedule deleted. Click Save in the top menu to persist changes.", Severity.Success);
         }
     }
 

@@ -58,7 +58,6 @@ else
     private bool isInitialized = false;
     private List<Consignee> consigneesList = new();
     private string searchString = "";
-    private string excelPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "PersonnelManagement.xlsx");
 
     protected override async Task OnInitializedAsync()
     {
@@ -95,9 +94,9 @@ else
         if (!result.Canceled)
         {
             var newConsignee = (Consignee)result.Data;
-            await ExcelService.AddPersonnelAsync(newConsignee);
+            ExcelService.AddConsignee(newConsignee);
             RefreshConsigneesList();
-            Snackbar.Add("Personnel added successfully", Severity.Success);
+            Snackbar.Add("Personnel added. Click Save in the top menu to persist changes.", Severity.Success);
         }
     }
 
@@ -113,10 +112,10 @@ else
         
         if (!result.Canceled)
         {
-            var updatedConsigee = (Consignee)result.Data;
-            await ExcelService.UpdateConsigneeAsync(updatedConsigee);
+            var updatedConsignee = (Consignee)result.Data;
+            ExcelService.UpdateConsignee(updatedConsignee);
             RefreshConsigneesList();
-            Snackbar.Add("Personnel updated successfully", Severity.Success);
+            Snackbar.Add("Personnel updated. Click Save in the top menu to persist changes.", Severity.Success);
         }
     }
 
@@ -132,9 +131,9 @@ else
         
         if (!result.Canceled)
         {
-            await ExcelService.DeleteConsigneeAsync(consignee.Key);
+            ExcelService.DeleteConsignee(consignee.Key);
             RefreshConsigneesList();
-            Snackbar.Add("Consignee deleted successfully", Severity.Success);
+            Snackbar.Add("Consignee deleted. Click Save in the top menu to persist changes.", Severity.Success);
         }
     }
 }

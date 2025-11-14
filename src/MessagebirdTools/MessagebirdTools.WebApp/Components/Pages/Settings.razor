@@ -23,8 +23,10 @@ else
             <MudTextField @bind-Value="settings.DatabaseRecordKey" Label="Database Record Key" />
             
             <MudText Typo="Typo.body2" Class="mt-4 mb-2">Current Excel File Path</MudText>
+            <MudText Typo="Typo.caption">@FilePathService.CurrentPath</MudText>
             
-            <MudButton Variant="MudBlazor.Variant.Filled" Color="Color.Primary" OnClick="SaveSettings" Class="mt-4">Save Settings</MudButton>
+            <MudButton Variant="MudBlazor.Variant.Filled" Color="Color.Primary" OnClick="UpdateSettings" Class="mt-4">Update Settings</MudButton>
+            <MudText Typo="Typo.caption" Class="mt-2">Note: Settings will be saved to Excel when you click the Save button in the top menu</MudText>
         </MudForm>
     </MudPaper>
 }
@@ -33,7 +35,6 @@ else
     private bool isInitialized = false;
     private bool success = false;
     private AppSettings settings = new();
-    private string excelPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "PersonnelManagement.xlsx");
     private MudForm form = null!;
 
     protected override async Task OnInitializedAsync()
@@ -53,14 +54,14 @@ else
         settings = ExcelService.GetSettings();
     }
 
-    private async Task SaveSettings()
+    private async Task UpdateSettings()
     {
         await form.Validate();
         
         if (success)
         {
-            await ExcelService.SaveSettingsAsync(settings);
-            Snackbar.Add("Settings saved successfully", Severity.Success);
+            ExcelService.UpdateSettings(settings);
+            Snackbar.Add("Settings updated in memory. Click Save in the top menu to persist changes.", Severity.Success);
         }
     }
 }

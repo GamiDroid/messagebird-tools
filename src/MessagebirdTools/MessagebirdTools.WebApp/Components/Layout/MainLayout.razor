@@ -6,6 +6,7 @@
 @inject NavigationManager NavigationManager
 @inject ThemeService ThemeService
 @inject IExcelService ExcelService
+@inject IMessagebirdService MessagebirdService
 @inject ISnackbar Snackbar
 @implements IDisposable
 
@@ -20,9 +21,23 @@
         <MudText Typo="Typo.h5" Class="ml-3">MessagebirdTools</MudText>
         <MudSpacer />
         
+        @if (ExcelService.HasUnsavedChanges)
+        {
+            <MudText Typo="Typo.body2" Color="Color.Warning" Class="mr-2">● Unsaved Changes</MudText>
+        }
+        
         <MudButtonGroup Color="Color.Primary" Variant="MudBlazor.Variant.Filled" Class="mr-2">
-            <MudButton StartIcon="@Icons.Material.Filled.Save" OnClick="SaveToExcel">Save</MudButton>
-            <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter">
+            <MudButton StartIcon="@Icons.Material.Filled.Save" OnClick="SaveToExcel" Disabled="@_isSaving">
+                @if (_isSaving)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                }
+                else
+                {
+                    <span>Save</span>
+                }
+            </MudButton>
+            <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter" Disabled="@_isSaving">
                 <MudMenuItem OnClick="SaveAndPublish" Icon="@Icons.Material.Filled.CloudUpload">Save and Publish</MudMenuItem>
             </MudMenu>
         </MudButtonGroup>
@@ -31,8 +46,16 @@
                    Color="Color.Success" 
                    Variant="MudBlazor.Variant.Filled" 
                    OnClick="PublishToMessagebird"
+                   Disabled="@_isPublishing"
                    Class="mr-2">
-            Publish
+            @if (_isPublishing)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+            }
+            else
+            {
+                <span>Publish</span>
+            }
         </MudButton>
         
         <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" />
@@ -58,6 +81,8 @@
     private bool _isDarkMode = true;
     private MudTheme? _theme = null;
     bool _filePathChecked = false;
+    private bool _isSaving = false;
+    private bool _isPublishing = false;
 
     protected override void OnInitialized()
     {
@@ -106,29 +131,47 @@
 
     private async Task SaveToExcel()
     {
+        _isSaving = true;
+        StateHasChanged();
+        
         try
         {
-            // De huidige data wordt automatisch opgeslagen door ExcelService
-            // Hier kun je extra logica toevoegen indien nodig
+            await ExcelService.SaveToExcelAsync();
             Snackbar.Add("Data successfully saved to Excel", Severity.Success);
         }
         catch (Exception ex)
         {
             Snackbar.Add($"Error saving to Excel: {ex.Message}", Severity.Error);
         }
+        finally
+        {
+            _isSaving = false;
+            StateHasChanged();
+        }
     }
 
     private async Task PublishToMessagebird()
     {
+        _isPublishing = true;
+        StateHasChanged();
+        
         try
         {
-            // TODO: Implementeer Messagebird API call
-            // Bijvoorbeeld: await MessagebirdService.PublishAsync();
+            var settings = ExcelService.GetSettings();
+            var consignees = ExcelService.GetAllConsignees();
+            var schedules = ExcelService.GetAllSchedules();
+            
+            await MessagebirdService.PublishAsync(settings, consignees, schedules);
             Snackbar.Add("Data successfully published to Messagebird", Severity.Success);
         }
         catch (Exception ex)
         {
             Snackbar.Add($"Error publishing to Messagebird: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isPublishing = false;
+            StateHasChanged();
         }
     }
 
