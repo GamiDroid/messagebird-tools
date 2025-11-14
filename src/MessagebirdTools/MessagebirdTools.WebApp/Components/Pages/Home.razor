@@ -1,58 +1,228 @@
 ﻿@page "/"
+@using MudBlazor
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Home - MessagebirdTools</PageTitle>
 
-<MudText Typo="Typo.h3" GutterBottom="true">Hello, world!</MudText>
-<MudText Class="mb-8">Welcome to your new app, powered by MudBlazor and the .NET 8 Template!</MudText>
-
-<MudAlert Severity="Severity.Normal">
-    You can find documentation and examples on our website here:
-    <MudLink Href="https://mudblazor.com" Target="_blank" Typo="Typo.body2" Color="Color.Primary">
-        <b>www.mudblazor.com</b>
-    </MudLink>
-</MudAlert>
-
-<br />
-<MudText Typo="Typo.h5" GutterBottom="true">Interactivity in this Template</MudText>
-<br />
-<MudText Typo="Typo.body2">
-    When you opt for the "Global" Interactivity Location, <br />
-    the render modes are defined in App.razor and consequently apply to all child components.<br />
-    In this case, providers are globally set in the MainLayout.<br />
-    <br />
-    On the other hand, if you choose the "Per page/component" Interactivity Location,<br />
-    it is necessary to include the <br />
-    <br />
-    &lt;MudPopoverProvider /&gt; <br />
-    &lt;MudDialogProvider /&gt; <br />
-    &lt;MudSnackbarProvider /&gt; <br />
-    <br />
-    components on every interactive page.<br />
-    <br />
-    If a render mode is not specified for a page, it defaults to Server-Side Rendering (SSR),<br />
-    similar to this page. While MudBlazor allows pages to be rendered in SSR,<br />
-    please note that interactive features, such as buttons and dropdown menus, will not be functional.
+<MudText Typo="Typo.h3" GutterBottom="true">
+    <MudIcon Icon="@Icons.Material.Filled.Home" Class="mr-2" />
+    Welkom bij MessagebirdTools
 </MudText>
+<MudText Class="mb-4">Een applicatie voor het beheren van consignees en schedules, met synchronisatie naar Messagebird.</MudText>
 
-<br />
-<MudText Typo="Typo.h5" GutterBottom="true">What's New in Blazor with the Release of .NET 8</MudText>
-<br />
-<MudText Typo="Typo.h6" GutterBottom="true">Prerendering</MudText>
-<MudText Typo="Typo.body2" GutterBottom="true">
-    If you're exploring the features of .NET 8 Blazor,<br /> you might be pleasantly surprised to learn that each page is prerendered on the server,<br /> regardless of the selected render mode.<br /><br />
-    This means that you'll need to inject all necessary services on the server,<br /> even when opting for the wasm (WebAssembly) render mode.<br /><br />
-    This prerendering functionality is crucial to ensuring that WebAssembly mode feels fast and responsive,<br /> especially when it comes to initial page load times.<br /><br />
-    For more information on how to detect prerendering and leverage the RenderContext, you can refer to the following link:
-    <MudLink Href="https://github.com/dotnet/aspnetcore/issues/51468#issuecomment-1783568121" Target="_blank" Typo="Typo.body2" Color="Color.Primary">
-        More details
-    </MudLink>
-</MudText>
+<MudDivider Class="mb-6" />
 
-<br />
-<MudText Typo="Typo.h6" GutterBottom="true">InteractiveAuto</MudText>
-<MudText Typo="Typo.body2">
-    A discussion on how to achieve this can be found here:
-    <MudLink Href="https://github.com/dotnet/aspnetcore/issues/51468#issue-1950424116" Target="_blank" Typo="Typo.body2" Color="Color.Primary">
-        More details
-    </MudLink>
-</MudText>
+<MudGrid>
+    <MudItem xs="12" md="6">
+        <MudPaper Class="pa-4 mb-4" Elevation="2">
+            <MudText Typo="Typo.h5" GutterBottom="true">
+                <MudIcon Icon="@Icons.Material.Filled.MenuBook" Class="mr-2" Color="Color.Primary" />
+                Snelstart Gids
+            </MudText>
+            
+            <MudTimeline TimelinePosition="TimelinePosition.Start" TimelineAlign="TimelineAlign.Start">
+                <MudTimelineItem Color="Color.Primary" Size="Size.Small">
+                    <MudText Typo="Typo.h6">1. Configureer Excel Bestand</MudText>
+                    <MudText Typo="Typo.body2">
+                        Bij eerste gebruik wordt u gevraagd een Excel bestand te selecteren of aan te maken.
+                        Dit bestand wordt gebruikt voor lokale opslag van alle gegevens.
+                    </MudText>
+                </MudTimelineItem>
+                
+                <MudTimelineItem Color="Color.Primary" Size="Size.Small">
+                    <MudText Typo="Typo.h6">2. Stel API Instellingen In</MudText>
+                    <MudText Typo="Typo.body2">
+                        Ga naar <MudLink Href="/settings">Settings</MudLink> en configureer uw Messagebird API credentials:
+                        API Key, Database Key en Database Record Key.
+                    </MudText>
+                </MudTimelineItem>
+                
+                <MudTimelineItem Color="Color.Primary" Size="Size.Small">
+                    <MudText Typo="Typo.h6">3. Beheer Consignees</MudText>
+                    <MudText Typo="Typo.body2">
+                        Voeg consignees toe via de <MudLink Href="/consignees">Consignees</MudLink> pagina.
+                        Dit zijn de personen die aan schedules gekoppeld kunnen worden.
+                    </MudText>
+                </MudTimelineItem>
+                
+                <MudTimelineItem Color="Color.Success" Size="Size.Small">
+                    <MudText Typo="Typo.h6">4. Plan Schedules</MudText>
+                    <MudText Typo="Typo.body2">
+                        Maak schedules aan op de <MudLink Href="/scheduling">Scheduling</MudLink> pagina.
+                        Bekijk ze in tabel- of kalenderweergave.
+                    </MudText>
+                </MudTimelineItem>
+            </MudTimeline>
+        </MudPaper>
+    </MudItem>
+    
+    <MudItem xs="12" md="6">
+        <MudPaper Class="pa-4 mb-4" Elevation="2">
+            <MudText Typo="Typo.h5" GutterBottom="true">
+                <MudIcon Icon="@Icons.Material.Filled.SaveAlt" Class="mr-2" Color="Color.Success" />
+                Opslaan & Publiceren
+            </MudText>
+            <MudText Typo="Typo.body2" Class="mb-4">
+                Alle wijzigingen worden eerst in het geheugen bewaard. Gebruik de knoppen in de werkbalk om te synchroniseren:
+            </MudText>
+            
+            <MudStack Spacing="3">
+                <MudAlert Severity="Severity.Info" Variant="MudBlazor.Variant.Filled" Dense="true">
+                    <MudStack Row="true" AlignItems="MudBlazor.AlignItems.Center" Spacing="2">
+                        <MudIcon Icon="@Icons.Material.Filled.Save" />
+                        <div>
+                            <MudText Typo="Typo.subtitle2"><strong>Save</strong></MudText>
+                            <MudText Typo="Typo.body2">Slaat alle wijzigingen op naar het Excel bestand</MudText>
+                        </div>
+                    </MudStack>
+                </MudAlert>
+                
+                <MudAlert Severity="Severity.Success" Variant="MudBlazor.Variant.Filled" Dense="true">
+                    <MudStack Row="true" AlignItems="MudBlazor.AlignItems.Center" Spacing="2">
+                        <MudIcon Icon="@Icons.Material.Filled.Publish" />
+                        <div>
+                            <MudText Typo="Typo.subtitle2"><strong>Publish</strong></MudText>
+                            <MudText Typo="Typo.body2">Publiceert de huidige in-memory data naar Messagebird</MudText>
+                        </div>
+                    </MudStack>
+                </MudAlert>
+                
+                <MudAlert Severity="Severity.Warning" Variant="MudBlazor.Variant.Filled" Dense="true">
+                    <MudStack Row="true" AlignItems="MudBlazor.AlignItems.Center" Spacing="2">
+                        <MudIcon Icon="@Icons.Material.Filled.CloudUpload" />
+                        <div>
+                            <MudText Typo="Typo.subtitle2"><strong>Save and Publish</strong></MudText>
+                            <MudText Typo="Typo.body2">Combineert beide acties: eerst opslaan, dan publiceren</MudText>
+                        </div>
+                    </MudStack>
+                </MudAlert>
+            </MudStack>
+            
+            <MudDivider Class="my-4" />
+            
+            <MudAlert Severity="Severity.Warning" Dense="true">
+                <MudText Typo="Typo.body2">
+                    <MudIcon Icon="@Icons.Material.Filled.Warning" Size="Size.Small" Class="mr-1" />
+                    Wanneer u niet-opgeslagen wijzigingen heeft, verschijnt er een indicator in de werkbalk.
+                </MudText>
+            </MudAlert>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+<MudGrid Class="mt-4">
+    <MudItem xs="12" md="4">
+        <MudPaper Class="pa-4" Elevation="2" Style="height: 100%;">
+            <MudStack Spacing="2">
+                <MudIcon Icon="@Icons.Material.Filled.People" Color="Color.Primary" Size="Size.Large" />
+                <MudText Typo="Typo.h6">Consignees Beheer</MudText>
+                <MudText Typo="Typo.body2">
+                    Voeg consignees toe, bewerk of verwijder ze. Elk consignee heeft een unieke ID, naam, email en telefoonnummer.
+                </MudText>
+                <MudButton Variant="MudBlazor.Variant.Outlined" Color="Color.Primary" Href="/consignees" StartIcon="@Icons.Material.Filled.ArrowForward">
+                    Ga naar Consignees
+                </MudButton>
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+    
+    <MudItem xs="12" md="4">
+        <MudPaper Class="pa-4" Elevation="2" Style="height: 100%;">
+            <MudStack Spacing="2">
+                <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Color="Color.Secondary" Size="Size.Large" />
+                <MudText Typo="Typo.h6">Planning Beheer</MudText>
+                <MudText Typo="Typo.body2">
+                    Plan schedules met start- en eindtijd. Bekijk ze in een overzichtelijke tabel of kalender weergave.
+                </MudText>
+                <MudButton Variant="MudBlazor.Variant.Outlined" Color="Color.Secondary" Href="/scheduling" StartIcon="@Icons.Material.Filled.ArrowForward">
+                    Ga naar Scheduling
+                </MudButton>
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+    
+    <MudItem xs="12" md="4">
+        <MudPaper Class="pa-4" Elevation="2" Style="height: 100%;">
+            <MudStack Spacing="2">
+                <MudIcon Icon="@Icons.Material.Filled.Settings" Color="Color.Tertiary" Size="Size.Large" />
+                <MudText Typo="Typo.h6">Instellingen</MudText>
+                <MudText Typo="Typo.body2">
+                    Configureer uw Messagebird API credentials en beheer het Excel bestandspad voor gegevensopslag.
+                </MudText>
+                <MudButton Variant="MudBlazor.Variant.Outlined" Color="Color.Tertiary" Href="/settings" StartIcon="@Icons.Material.Filled.ArrowForward">
+                    Ga naar Settings
+                </MudButton>
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+<MudPaper Class="pa-4 mt-6" Elevation="2">
+    <MudText Typo="Typo.h5" GutterBottom="true">
+        <MudIcon Icon="@Icons.Material.Filled.Help" Class="mr-2" Color="Color.Info" />
+        Veelgestelde Vragen
+    </MudText>
+    
+    <MudExpansionPanels MultiExpansion="true" Class="mt-4">
+        <MudExpansionPanel>
+            <TitleContent>
+                <MudText Typo="Typo.h6">Wat gebeurt er als ik wijzigingen maak maar niet opsla?</MudText>
+            </TitleContent>
+            <ChildContent>
+                <MudText Typo="Typo.body2">
+                    Alle wijzigingen worden tijdelijk in het geheugen bewaard. Als u de applicatie sluit zonder op te slaan,
+                    gaan deze wijzigingen verloren. De werkbalk toont een waarschuwing wanneer u niet-opgeslagen wijzigingen heeft.
+                </MudText>
+            </ChildContent>
+        </MudExpansionPanel>
+        
+        <MudExpansionPanel>
+            <TitleContent>
+                <MudText Typo="Typo.h6">Wat is het verschil tussen Save en Publish?</MudText>
+            </TitleContent>
+            <ChildContent>
+                <MudText Typo="Typo.body2">
+                    <strong>Save</strong> slaat uw wijzigingen op in het lokale Excel bestand voor later gebruik.<br />
+                    <strong>Publish</strong> stuurt de huidige gegevens naar Messagebird voor synchronisatie met hun systeem.<br />
+                    U kunt ook <strong>Save and Publish</strong> gebruiken om beide acties in één keer uit te voeren.
+                </MudText>
+            </ChildContent>
+        </MudExpansionPanel>
+        
+        <MudExpansionPanel>
+            <TitleContent>
+                <MudText Typo="Typo.h6">Waar wordt mijn Excel bestand opgeslagen?</MudText>
+            </TitleContent>
+            <ChildContent>
+                <MudText Typo="Typo.body2">
+                    Het pad naar uw Excel bestand wordt lokaal opgeslagen in de browser. U kunt het pad bekijken en wijzigen
+                    op de Settings pagina. Het Excel bestand bevat drie worksheets: Consignees, Schedule, en Settings.
+                </MudText>
+            </ChildContent>
+        </MudExpansionPanel>
+        
+        <MudExpansionPanel>
+            <TitleContent>
+                <MudText Typo="Typo.h6">Hoe kan ik de API credentials veilig bewaren?</MudText>
+            </TitleContent>
+            <ChildContent>
+                <MudText Typo="Typo.body2">
+                    De API credentials worden opgeslagen in het Excel bestand op het Settings worksheet.
+                    Zorg ervoor dat dit bestand op een veilige locatie staat en niet publiekelijk toegankelijk is.
+                    Gebruik altijd de Save knop na het wijzigen van de credentials.
+                </MudText>
+            </ChildContent>
+        </MudExpansionPanel>
+    </MudExpansionPanels>
+</MudPaper>
+
+<MudPaper Class="pa-4 mt-4 mb-4" Elevation="2">
+    <MudStack Row="true" Justify="MudBlazor.Justify.SpaceBetween" AlignItems="MudBlazor.AlignItems.Center">
+        <div>
+            <MudText Typo="Typo.h6">Klaar om te beginnen?</MudText>
+            <MudText Typo="Typo.body2">Start met het configureren van uw instellingen en voeg uw eerste consignees toe.</MudText>
+        </div>
+        <MudButton Variant="MudBlazor.Variant.Filled" Color="Color.Primary" Size="Size.Large" Href="/settings" EndIcon="@Icons.Material.Filled.ArrowForward">
+            Naar Instellingen
+        </MudButton>
+    </MudStack>
+</MudPaper>
