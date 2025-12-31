@@ -11,9 +11,16 @@ builder.Services.AddMudServices();
 // Add Radzen services
 builder.Services.AddRadzenComponents();
 
-builder.Services.AddSingleton<IExcelService, ExcelService>();
-builder.Services.AddScoped<IFilePathService, FilePathService>();
-builder.Services.AddScoped<IMessagebirdService, MessagebirdService>();
+// Register settings service (stores settings in server-side JSON file)
+builder.Services.AddSingleton<ISettingsService, SettingsService>();
+
+// Register schedule data service (Messagebird as single source of truth)
+builder.Services.AddScoped<IScheduleDataService, ScheduleDataService>();
+
+// Register Excel import/export service
+builder.Services.AddScoped<IExcelImportExportService, ExcelImportExportService>();
+
+// Register Messagebird client
 builder.Services.AddHttpClient<IMessagebirdClient, MessagebirdClient>(client =>
 {
     client.BaseAddress = new Uri("https://flows.messagebird.com");

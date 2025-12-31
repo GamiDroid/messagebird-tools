@@ -21,18 +21,18 @@
             
             <MudTimeline TimelinePosition="TimelinePosition.Start" TimelineAlign="TimelineAlign.Start">
                 <MudTimelineItem Color="Color.Primary" Size="Size.Small">
-                    <MudText Typo="Typo.h6">1. Configureer Excel Bestand</MudText>
-                    <MudText Typo="Typo.body2">
-                        Bij eerste gebruik wordt u gevraagd een Excel bestand te selecteren of aan te maken.
-                        Dit bestand wordt gebruikt voor lokale opslag van alle gegevens.
-                    </MudText>
-                </MudTimelineItem>
-                
-                <MudTimelineItem Color="Color.Primary" Size="Size.Small">
-                    <MudText Typo="Typo.h6">2. Stel API Instellingen In</MudText>
+                    <MudText Typo="Typo.h6">1. Configureer API Instellingen</MudText>
                     <MudText Typo="Typo.body2">
                         Ga naar <MudLink Href="/settings">Settings</MudLink> en configureer uw Messagebird API credentials:
                         API Key, Database Key en Database Record Key.
+                    </MudText>
+                </MudTimelineItem>
+                
+                <MudTimelineItem Color="Color.Info" Size="Size.Small">
+                    <MudText Typo="Typo.h6">2. Haal Data Op</MudText>
+                    <MudText Typo="Typo.body2">
+                        Klik op de <strong>Fetch</strong> knop in de werkbalk om bestaande data van Messagebird op te halen,
+                        of begin met lege data als dit uw eerste keer is.
                     </MudText>
                 </MudTimelineItem>
                 
@@ -58,20 +58,20 @@
     <MudItem xs="12" md="6">
         <MudPaper Class="pa-4 mb-4" Elevation="2">
             <MudText Typo="Typo.h5" GutterBottom="true">
-                <MudIcon Icon="@Icons.Material.Filled.SaveAlt" Class="mr-2" Color="Color.Success" />
-                Opslaan & Publiceren
+                <MudIcon Icon="@Icons.Material.Filled.CloudSync" Class="mr-2" Color="Color.Success" />
+                Synchroniseren met Messagebird
             </MudText>
             <MudText Typo="Typo.body2" Class="mb-4">
-                Alle wijzigingen worden eerst in het geheugen bewaard. Gebruik de knoppen in de werkbalk om te synchroniseren:
+                Messagebird is de centrale opslag voor al uw data. Gebruik de knoppen in de werkbalk om te synchroniseren:
             </MudText>
             
             <MudStack Spacing="3">
                 <MudAlert Severity="Severity.Info" Variant="MudBlazor.Variant.Filled" Dense="true">
                     <MudStack Row="true" AlignItems="MudBlazor.AlignItems.Center" Spacing="2">
-                        <MudIcon Icon="@Icons.Material.Filled.Save" />
+                        <MudIcon Icon="@Icons.Material.Filled.CloudDownload" />
                         <div>
-                            <MudText Typo="Typo.subtitle2"><strong>Save</strong></MudText>
-                            <MudText Typo="Typo.body2">Slaat alle wijzigingen op naar het Excel bestand</MudText>
+                            <MudText Typo="Typo.subtitle2"><strong>Fetch</strong></MudText>
+                            <MudText Typo="Typo.body2">Haalt de meest recente data op van Messagebird</MudText>
                         </div>
                     </MudStack>
                 </MudAlert>
@@ -81,17 +81,7 @@
                         <MudIcon Icon="@Icons.Material.Filled.Publish" />
                         <div>
                             <MudText Typo="Typo.subtitle2"><strong>Publish</strong></MudText>
-                            <MudText Typo="Typo.body2">Publiceert de huidige in-memory data naar Messagebird</MudText>
-                        </div>
-                    </MudStack>
-                </MudAlert>
-                
-                <MudAlert Severity="Severity.Warning" Variant="MudBlazor.Variant.Filled" Dense="true">
-                    <MudStack Row="true" AlignItems="MudBlazor.AlignItems.Center" Spacing="2">
-                        <MudIcon Icon="@Icons.Material.Filled.CloudUpload" />
-                        <div>
-                            <MudText Typo="Typo.subtitle2"><strong>Save and Publish</strong></MudText>
-                            <MudText Typo="Typo.body2">Combineert beide acties: eerst opslaan, dan publiceren</MudText>
+                            <MudText Typo="Typo.body2">Publiceert uw wijzigingen naar Messagebird</MudText>
                         </div>
                     </MudStack>
                 </MudAlert>
@@ -102,7 +92,8 @@
             <MudAlert Severity="Severity.Warning" Dense="true">
                 <MudText Typo="Typo.body2">
                     <MudIcon Icon="@Icons.Material.Filled.Warning" Size="Size.Small" Class="mr-1" />
-                    Wanneer u niet-opgeslagen wijzigingen heeft, verschijnt er een indicator in de werkbalk.
+                    Wanneer u niet-gepubliceerde wijzigingen heeft, verschijnt er een indicator in de werkbalk.
+                    Klik op <strong>Publish</strong> om uw wijzigingen op te slaan.
                 </MudText>
             </MudAlert>
         </MudPaper>
@@ -146,7 +137,7 @@
                 <MudIcon Icon="@Icons.Material.Filled.Settings" Color="Color.Tertiary" Size="Size.Large" />
                 <MudText Typo="Typo.h6">Instellingen</MudText>
                 <MudText Typo="Typo.body2">
-                    Configureer uw Messagebird API credentials en beheer het Excel bestandspad voor gegevensopslag.
+                    Configureer uw Messagebird API credentials voor toegang tot de database.
                 </MudText>
                 <MudButton Variant="MudBlazor.Variant.Outlined" Color="Color.Tertiary" Href="/settings" StartIcon="@Icons.Material.Filled.ArrowForward">
                     Ga naar Settings
@@ -165,50 +156,55 @@
     <MudExpansionPanels MultiExpansion="true" Class="mt-4">
         <MudExpansionPanel>
             <TitleContent>
-                <MudText Typo="Typo.h6">Wat gebeurt er als ik wijzigingen maak maar niet opsla?</MudText>
+                <MudText Typo="Typo.h6">Wat gebeurt er als ik wijzigingen maak maar niet publiceer?</MudText>
             </TitleContent>
             <ChildContent>
                 <MudText Typo="Typo.body2">
-                    Alle wijzigingen worden tijdelijk in het geheugen bewaard. Als u de applicatie sluit zonder op te slaan,
-                    gaan deze wijzigingen verloren. De werkbalk toont een waarschuwing wanneer u niet-opgeslagen wijzigingen heeft.
+                    Alle wijzigingen worden tijdelijk in het geheugen bewaard. Als u de applicatie sluit zonder te publiceren,
+                    gaan deze wijzigingen verloren. De werkbalk toont een waarschuwing wanneer u niet-gepubliceerde wijzigingen heeft.
+                    Klik op <strong>Publish</strong> om uw wijzigingen permanent op te slaan in Messagebird.
                 </MudText>
             </ChildContent>
         </MudExpansionPanel>
         
         <MudExpansionPanel>
             <TitleContent>
-                <MudText Typo="Typo.h6">Wat is het verschil tussen Save en Publish?</MudText>
+                <MudText Typo="Typo.h6">Wat is het verschil tussen Fetch en Publish?</MudText>
             </TitleContent>
             <ChildContent>
                 <MudText Typo="Typo.body2">
-                    <strong>Save</strong> slaat uw wijzigingen op in het lokale Excel bestand voor later gebruik.<br />
-                    <strong>Publish</strong> stuurt de huidige gegevens naar Messagebird voor synchronisatie met hun systeem.<br />
-                    U kunt ook <strong>Save and Publish</strong> gebruiken om beide acties in één keer uit te voeren.
+                    <strong>Fetch</strong> haalt de meest recente data op van de Messagebird database. 
+                    Dit overschrijft uw lokale wijzigingen.<br />
+                    <strong>Publish</strong> stuurt uw huidige wijzigingen naar de Messagebird database,
+                    waardoor ze permanent worden opgeslagen.
                 </MudText>
             </ChildContent>
         </MudExpansionPanel>
         
         <MudExpansionPanel>
             <TitleContent>
-                <MudText Typo="Typo.h6">Waar wordt mijn Excel bestand opgeslagen?</MudText>
+                <MudText Typo="Typo.h6">Kan ik data importeren of exporteren naar Excel?</MudText>
             </TitleContent>
             <ChildContent>
                 <MudText Typo="Typo.body2">
-                    Het pad naar uw Excel bestand wordt lokaal opgeslagen in de browser. U kunt het pad bekijken en wijzigen
-                    op de Settings pagina. Het Excel bestand bevat drie worksheets: Consignees, Schedule, en Settings.
+                    Ja! Op de Scheduling en Consignees pagina's vindt u een <strong>Excel</strong> menu 
+                    waarmee u data kunt importeren vanuit een Excel bestand of exporteren naar Excel.
+                    Dit is handig voor bulk wijzigingen of om een backup te maken van uw data.
+                    Na het importeren moet u nog steeds op <strong>Publish</strong> klikken om de wijzigingen 
+                    naar Messagebird te versturen.
                 </MudText>
             </ChildContent>
         </MudExpansionPanel>
         
         <MudExpansionPanel>
             <TitleContent>
-                <MudText Typo="Typo.h6">Hoe kan ik de API credentials veilig bewaren?</MudText>
+                <MudText Typo="Typo.h6">Waar worden mijn API credentials opgeslagen?</MudText>
             </TitleContent>
             <ChildContent>
                 <MudText Typo="Typo.body2">
-                    De API credentials worden opgeslagen in het Excel bestand op het Settings worksheet.
-                    Zorg ervoor dat dit bestand op een veilige locatie staat en niet publiekelijk toegankelijk is.
-                    Gebruik altijd de Save knop na het wijzigen van de credentials.
+                    Uw API credentials worden veilig opgeslagen in de lokale opslag van uw browser.
+                    Ze worden niet gedeeld met andere browsers of apparaten. U kunt ze bekijken 
+                    en wijzigen op de Settings pagina.
                 </MudText>
             </ChildContent>
         </MudExpansionPanel>
@@ -219,7 +215,7 @@
     <MudStack Row="true" Justify="MudBlazor.Justify.SpaceBetween" AlignItems="MudBlazor.AlignItems.Center">
         <div>
             <MudText Typo="Typo.h6">Klaar om te beginnen?</MudText>
-            <MudText Typo="Typo.body2">Start met het configureren van uw instellingen en voeg uw eerste consignees toe.</MudText>
+            <MudText Typo="Typo.body2">Start met het configureren van uw API instellingen.</MudText>
         </div>
         <MudButton Variant="MudBlazor.Variant.Filled" Color="Color.Primary" Size="Size.Large" Href="/settings" EndIcon="@Icons.Material.Filled.ArrowForward">
             Naar Instellingen

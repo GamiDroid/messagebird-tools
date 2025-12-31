@@ -1,8 +1,8 @@
 @page "/settings"
 @using MessagebirdTools.WebApp.Models
 @using MessagebirdTools.WebApp.Services
-@inject IExcelService ExcelService
-@inject IFilePathService FilePathService
+@inject ISettingsService SettingsService
+@inject IScheduleDataService DataService
 @inject ISnackbar Snackbar
 
 <PageTitle>Application Settings</PageTitle>
@@ -16,52 +16,225 @@
 }
 else
 {
-    <MudPaper Class="pa-4">
-        <MudForm @ref="form" @bind-IsValid="@success">
-            <MudTextField @bind-Value="settings.ApiKey" Label="API Key" />
-            <MudTextField @bind-Value="settings.DatabaseKey" Label="Database Key" />
-            <MudTextField @bind-Value="settings.DatabaseRecordKey" Label="Database Record Key" />
+    <MudGrid>
+        <MudItem xs="12" md="6">
+            <MudPaper Class="pa-4">
+                <MudText Typo="Typo.h5" GutterBottom="true">
+                    <MudIcon Icon="@Icons.Material.Filled.Key" Class="mr-2" />
+                    Messagebird API Credentials
+                </MudText>
+                <MudText Typo="Typo.body2" Class="mb-4">
+                    Configure your Messagebird API credentials to connect to the database.
+                </MudText>
+                
+                <MudForm @ref="form" @bind-IsValid="@success">
+                    <MudTextField @bind-Value="settings.ApiKey" 
+                                  Label="API Key" 
+                                  Required="true"
+                                  RequiredError="API Key is required"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@Icons.Material.Filled.Visibility"
+                                  OnAdornmentClick="ToggleApiKeyVisibility"
+                                  InputType="@apiKeyInputType" />
+                    
+                    <MudTextField @bind-Value="settings.DatabaseKey" 
+                                  Label="Database Key" 
+                                  Required="true"
+                                  RequiredError="Database Key is required"
+                                  Class="mt-3" />
+                    
+                    <MudTextField @bind-Value="settings.DatabaseRecordKey" 
+                                  Label="Database Record Key" 
+                                  Required="true"
+                                  RequiredError="Database Record Key is required"
+                                  Class="mt-3" />
+                    
+                    <MudStack Row="true" Class="mt-4" Spacing="2">
+                        <MudButton Variant="MudBlazor.Variant.Filled" 
+                                   Color="Color.Primary" 
+                                   OnClick="SaveSettings"
+                                   Disabled="@_isSaving">
+                            @if (_isSaving)
+                            {
+                                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                            }
+                            <span>Save Settings</span>
+                        </MudButton>
+                        
+                        <MudButton Variant="MudBlazor.Variant.Outlined" 
+                                   Color="Color.Info" 
+                                   OnClick="FetchData"
+                                   Disabled="@_fetchDisabled">
+                            @if (_isFetching)
+                            {
+                                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                            }
+                            <span>Fetch Data from Messagebird</span>
+                        </MudButton>
+                    </MudStack>
+                </MudForm>
+            </MudPaper>
+        </MudItem>
+        
+        <MudItem xs="12" md="6">
+            <MudPaper Class="pa-4">
+                <MudText Typo="Typo.h5" GutterBottom="true">
+                    <MudIcon Icon="@Icons.Material.Filled.Info" Class="mr-2" />
+                    Connection Status
+                </MudText>
+                
+                @if (SettingsService.HasValidSettings)
+                {
+                    <MudAlert Severity="Severity.Success" Class="mb-3">
+                        <MudText Typo="Typo.body2">
+                            <strong>Settings Configured</strong><br />
+                            Your Messagebird credentials are configured. You can now fetch and publish data.
+                        </MudText>
+                    </MudAlert>
+                    
+                    @if (DataService.IsInitialized)
+                    {
+                        <MudAlert Severity="Severity.Info">
+                            <MudText Typo="Typo.body2">
+                                <strong>Data Loaded</strong><br />
+                                @DataService.GetAllConsignees().Count consignees and @DataService.GetAllSchedules().Count schedules in memory.
+                                @if (DataService.HasUnsavedChanges)
+                                {
+                                    <br /><span style="color: var(--mud-palette-warning);">? You have unsaved changes. Click Publish to sync with Messagebird.</span>
+                                }
+                            </MudText>
+                        </MudAlert>
+                    }
+                }
+                else
+                {
+                    <MudAlert Severity="Severity.Warning">
+                        <MudText Typo="Typo.body2">
+                            <strong>Settings Required</strong><br />
+                            Please configure your Messagebird API credentials to connect to the database.
+                        </MudText>
+                    </MudAlert>
+                }
+            </MudPaper>
             
-            <MudText Typo="Typo.body2" Class="mt-4 mb-2">Current Excel File Path</MudText>
-            <MudText Typo="Typo.caption">@FilePathService.CurrentPath</MudText>
-            
-            <MudButton Variant="MudBlazor.Variant.Filled" Color="Color.Primary" OnClick="UpdateSettings" Class="mt-4">Update Settings</MudButton>
-            <MudText Typo="Typo.caption" Class="mt-2">Note: Settings will be saved to Excel when you click the Save button in the top menu</MudText>
-        </MudForm>
-    </MudPaper>
+            <MudPaper Class="pa-4 mt-4">
+                <MudText Typo="Typo.h5" GutterBottom="true">
+                    <MudIcon Icon="@Icons.Material.Filled.Help" Class="mr-2" />
+                    How it Works
+                </MudText>
+                
+                <MudTimeline TimelinePosition="TimelinePosition.Start" TimelineAlign="TimelineAlign.Start">
+                    <MudTimelineItem Color="Color.Primary" Size="Size.Small">
+                        <MudText Typo="Typo.subtitle2">1. Configure Credentials</MudText>
+                        <MudText Typo="Typo.body2">Enter your Messagebird API credentials above.</MudText>
+                    </MudTimelineItem>
+                    
+                    <MudTimelineItem Color="Color.Info" Size="Size.Small">
+                        <MudText Typo="Typo.subtitle2">2. Fetch Data</MudText>
+                        <MudText Typo="Typo.body2">Click "Fetch" to load data from Messagebird.</MudText>
+                    </MudTimelineItem>
+                    
+                    <MudTimelineItem Color="Color.Secondary" Size="Size.Small">
+                        <MudText Typo="Typo.subtitle2">3. Edit Data</MudText>
+                        <MudText Typo="Typo.body2">Make changes to consignees and schedules.</MudText>
+                    </MudTimelineItem>
+                    
+                    <MudTimelineItem Color="Color.Success" Size="Size.Small">
+                        <MudText Typo="Typo.subtitle2">4. Publish Changes</MudText>
+                        <MudText Typo="Typo.body2">Click "Publish" to save changes back to Messagebird.</MudText>
+                    </MudTimelineItem>
+                </MudTimeline>
+                
+                <MudDivider Class="my-3" />
+                
+                <MudText Typo="Typo.body2">
+                    <MudIcon Icon="@Icons.Material.Filled.TableChart" Size="Size.Small" Class="mr-1" />
+                    <strong>Excel Import/Export:</strong> You can import schedules from Excel or export current data to Excel 
+                    from the Scheduling or Consignees pages. This is useful for bulk editing or sharing data.
+                </MudText>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
 }
 
 @code {
     private bool isInitialized = false;
     private bool success = false;
+    private bool showApiKey = false;
+    private bool _isSaving = false;
+    private bool _isFetching = false;
     private AppSettings settings = new();
     private MudForm form = null!;
 
-    protected override async Task OnInitializedAsync()
-    {
-        await FilePathService.InitializeAsync();
+    private InputType apiKeyInputType => showApiKey ? InputType.Text : InputType.Password;
+    private bool _fetchDisabled => _isFetching || !SettingsService.HasValidSettings;
 
-        if (FilePathService.HasValidPath)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
         {
-            await ExcelService.InitializeAsync(FilePathService.CurrentPath!);
+            await SettingsService.InitializeAsync();
+            await DataService.InitializeAsync();
             RefreshData();
             isInitialized = true;
+            StateHasChanged();
         }
     }
 
     private void RefreshData()
     {
-        settings = ExcelService.GetSettings();
+        settings = SettingsService.GetSettings();
     }
 
-    private async Task UpdateSettings()
+    private void ToggleApiKeyVisibility()
+    {
+        showApiKey = !showApiKey;
+    }
+
+    private async Task SaveSettings()
     {
         await form.Validate();
         
         if (success)
         {
-            ExcelService.UpdateSettings(settings);
-            Snackbar.Add("Settings updated in memory. Click Save in the top menu to persist changes.", Severity.Success);
+            _isSaving = true;
+            StateHasChanged();
+            
+            try
+            {
+                await SettingsService.UpdateSettingsAsync(settings);
+                Snackbar.Add("Settings saved successfully.", Severity.Success);
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error saving settings: {ex.Message}", Severity.Error);
+            }
+            finally
+            {
+                _isSaving = false;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task FetchData()
+    {
+        _isFetching = true;
+        StateHasChanged();
+        
+        try
+        {
+            await DataService.FetchFromMessagebirdAsync();
+            Snackbar.Add("Data successfully fetched from Messagebird.", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error fetching data: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isFetching = false;
+            StateHasChanged();
         }
     }
 }

@@ -1,12 +1,11 @@
 ﻿@using MessagebirdTools.WebApp.Services
-@using MessagebirdTools.WebApp.Components
+@using MessagebirdTools.WebApp.Models
 @inherits LayoutComponentBase
 @inject IDialogService DialogService
-@inject IFilePathService FilePathService
 @inject NavigationManager NavigationManager
 @inject ThemeService ThemeService
-@inject IExcelService ExcelService
-@inject IMessagebirdService MessagebirdService
+@inject IScheduleDataService DataService
+@inject ISettingsService SettingsService
 @inject ISnackbar Snackbar
 @implements IDisposable
 
@@ -21,26 +20,26 @@
         <MudText Typo="Typo.h5" Class="ml-3">MessagebirdTools</MudText>
         <MudSpacer />
         
-        @if (ExcelService.HasUnsavedChanges)
+        @if (DataService.HasUnsavedChanges)
         {
             <MudText Typo="Typo.body2" Color="Color.Warning" Class="mr-2">● Unsaved Changes</MudText>
         }
         
-        <MudButtonGroup Color="Color.Primary" Variant="MudBlazor.Variant.Filled" Class="mr-2">
-            <MudButton StartIcon="@Icons.Material.Filled.Save" OnClick="SaveToExcel" Disabled="@_isSaving">
-                @if (_isSaving)
-                {
-                    <MudProgressCircular Size="Size.Small" Indeterminate="true" />
-                }
-                else
-                {
-                    <span>Save</span>
-                }
-            </MudButton>
-            <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter" Disabled="@_isSaving">
-                <MudMenuItem OnClick="SaveAndPublish" Icon="@Icons.Material.Filled.CloudUpload">Save and Publish</MudMenuItem>
-            </MudMenu>
-        </MudButtonGroup>
+        <MudButton StartIcon="@Icons.Material.Filled.CloudDownload" 
+                   Color="Color.Info" 
+                   Variant="MudBlazor.Variant.Filled" 
+                   OnClick="FetchFromMessagebird"
+                   Disabled="@_isFetching"
+                   Class="mr-2">
+            @if (_isFetching)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+            }
+            else
+            {
+                <span>Fetch</span>
+            }
+        </MudButton>
         
         <MudButton StartIcon="@Icons.Material.Filled.Publish" 
                    Color="Color.Success" 
@@ -80,8 +79,7 @@
     private bool _drawerOpen = true;
     private bool _isDarkMode = true;
     private MudTheme? _theme = null;
-    bool _filePathChecked = false;
-    private bool _isSaving = false;
+    private bool _isFetching = false;
     private bool _isPublishing = false;
 
     protected override void OnInitialized()
@@ -94,58 +92,41 @@
         };
 
         ThemeService.SetTheme(DarkLightModeMaterialTheme);
+        DataService.OnDataChanged += OnDataChanged;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            await FilePathService.InitializeAsync();
-            await CheckExcelFilePath();
+            await SettingsService.InitializeAsync();
+            await DataService.InitializeAsync();
+            StateHasChanged();
         }
     }
 
-    private async Task CheckExcelFilePath()
+    private void OnDataChanged()
     {
-        if (!_filePathChecked)
-        {
-            _filePathChecked = true;
-
-            // Only check if we're not on the settings page
-            if (!NavigationManager.Uri.EndsWith("/settings", StringComparison.OrdinalIgnoreCase))
-            {
-                if (!FilePathService.HasValidPath)
-                {
-                    var dialog = DialogService.Show<FileSelector>("Excel File Selection");
-                    var result = await dialog.Result;
-
-                    if (result.Canceled)
-                    {
-                        // Redirect to settings if user cancels
-                        NavigationManager.NavigateTo("/settings");
-                    }
-                }
-            }
-        }
+        InvokeAsync(StateHasChanged);
     }
 
-    private async Task SaveToExcel()
+    private async Task FetchFromMessagebird()
     {
-        _isSaving = true;
+        _isFetching = true;
         StateHasChanged();
         
         try
         {
-            await ExcelService.SaveToExcelAsync();
-            Snackbar.Add("Data successfully saved to Excel", Severity.Success);
+            await DataService.FetchFromMessagebirdAsync();
+            Snackbar.Add("Data successfully fetched from Messagebird", Severity.Success);
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error saving to Excel: {ex.Message}", Severity.Error);
+            Snackbar.Add($"Error fetching from Messagebird: {ex.Message}", Severity.Error);
         }
         finally
         {
-            _isSaving = false;
+            _isFetching = false;
             StateHasChanged();
         }
     }
@@ -157,11 +138,7 @@
         
         try
         {
-            var settings = ExcelService.GetSettings();
-            var consignees = ExcelService.GetAllConsignees();
-            var schedules = ExcelService.GetAllSchedules();
-            
-            await MessagebirdService.PublishAsync(settings, consignees, schedules);
+            await DataService.PublishToMessagebirdAsync();
             Snackbar.Add("Data successfully published to Messagebird", Severity.Success);
         }
         catch (Exception ex)
@@ -175,22 +152,9 @@
         }
     }
 
-    private async Task SaveAndPublish()
-    {
-        try
-        {
-            await SaveToExcel();
-            await PublishToMessagebird();
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add($"Error during save and publish: {ex.Message}", Severity.Error);
-        }
-    }
-
     public void Dispose()
     {
-        FilePathService.OnPathChanged -= StateHasChanged;
+        DataService.OnDataChanged -= OnDataChanged;
     }
 
 

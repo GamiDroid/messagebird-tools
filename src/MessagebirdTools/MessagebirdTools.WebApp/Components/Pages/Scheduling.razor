@@ -2,11 +2,13 @@
 @using MessagebirdTools.WebApp.Components.Dialogs
 @using MessagebirdTools.WebApp.Models
 @using MessagebirdTools.WebApp.Services
-@inject IExcelService ExcelService
-@inject IFilePathService FilePathService
+@inject IScheduleDataService DataService
+@inject ISettingsService SettingsService
+@inject IExcelImportExportService ExcelService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject TooltipService TooltipService
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Scheduling Management</PageTitle>
 
@@ -46,6 +48,10 @@ else
             <MudStack Row="true" Spacing="2">
                 <MudButton Variant="MudBlazor.Variant.Filled" Color="Color.Primary" OnClick="OpenAddDialog" StartIcon="@Icons.Material.Filled.AddAlarm">Add New Schedule</MudButton>
                 <MudSpacer />
+                <MudMenu Label="Excel" StartIcon="@Icons.Material.Filled.TableChart" Variant="MudBlazor.Variant.Outlined" Color="Color.Default">
+                    <MudMenuItem OnClick="ImportFromExcel" Icon="@Icons.Material.Filled.Upload">Import from Excel</MudMenuItem>
+                    <MudMenuItem OnClick="ExportToExcel" Icon="@Icons.Material.Filled.Download">Export to Excel</MudMenuItem>
+                </MudMenu>
                 <MudSwitch @bind-Value="@showTable" Color="Color.Primary" Label="Show Table" />
                 <MudSwitch @bind-Value="@showCalendar" Color="Color.Primary" Label="Show Calendar" />
             </MudStack>
@@ -117,6 +123,8 @@ else
     </MudContainer>
 }
 
+<InputFile id="excelFileInput" OnChange="OnExcelFileSelected" style="display: none;" accept=".xlsx,.xls" />
+
 @code {
     private bool isInitialized = false;
     private bool showTable = true;
@@ -127,15 +135,15 @@ else
     private RadzenScheduler<ScheduleAppointment>? scheduler;
     private IList<ScheduleAppointment> appointments = new List<ScheduleAppointment>();
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await FilePathService.InitializeAsync();
-
-        if (FilePathService.HasValidPath)
+        if (firstRender)
         {
-            await ExcelService.InitializeAsync(FilePathService.CurrentPath!);
+            await SettingsService.InitializeAsync();
+            await DataService.InitializeAsync();
             await RefreshData();
             isInitialized = true;
+            StateHasChanged();
         }
     }
 
@@ -175,8 +183,8 @@ else
 
     private async Task RefreshData()
     {
-        scheduleList = ExcelService.GetAllSchedules();
-        consigneesList = ExcelService.GetAllConsignees();
+        scheduleList = DataService.GetAllSchedules();
+        consigneesList = DataService.GetAllConsignees();
         UpdateAppointments();
         await Task.CompletedTask;
     }
@@ -200,8 +208,6 @@ else
 
     void OnSlotRender(SchedulerSlotRenderEventArgs args)
     {
-        // You can customize the appearance of slots here if needed
-
         // Highlight today in month view
         if (args.View.Text == "Month" && args.Start.Date == DateTime.Today)
         {
@@ -211,11 +217,8 @@ else
 
     void OnAppointmentRender(SchedulerAppointmentRenderEventArgs<ScheduleAppointment> args)
     {
-        // You can customize the appearance of appointments here if needed
         var appointment = args.Data;
-
         var color = GetConsigneeColor(consigneesList, appointment.ConsigneeKey);
-
         args.Attributes["style"] = $"background: {color};";
     }
 
@@ -266,9 +269,9 @@ else
         if (!result.Canceled)
         {
             var newSchedule = (Schedule)result.Data;
-            ExcelService.AddSchedule(newSchedule);
+            DataService.AddSchedule(newSchedule);
             await RefreshData();
-            Snackbar.Add("Schedule added. Click Save in the top menu to persist changes.", Severity.Success);
+            Snackbar.Add("Schedule added. Click Publish to sync with Messagebird.", Severity.Success);
         }
     }
 
@@ -285,9 +288,9 @@ else
         if (!result.Canceled)
         {
             var newSchedule = (Schedule)result.Data;
-            ExcelService.AddSchedule(newSchedule);
+            DataService.AddSchedule(newSchedule);
             await RefreshData();
-            Snackbar.Add("Schedule added. Click Save in the top menu to persist changes.", Severity.Success);
+            Snackbar.Add("Schedule added. Click Publish to sync with Messagebird.", Severity.Success);
         }
     }
 
@@ -305,9 +308,9 @@ else
         if (!result.Canceled)
         {
             var updatedSchedule = (Schedule)result.Data;
-            ExcelService.UpdateSchedule(updatedSchedule);
+            DataService.UpdateSchedule(updatedSchedule);
             await RefreshData();
-            Snackbar.Add("Schedule updated. Click Save in the top menu to persist changes.", Severity.Success);
+            Snackbar.Add("Schedule updated. Click Publish to sync with Messagebird.", Severity.Success);
         }
     }
 
@@ -323,9 +326,70 @@ else
 
         if (!result.Canceled)
         {
-            ExcelService.DeleteSchedule(schedule.LineNumber);
+            DataService.DeleteSchedule(schedule.LineNumber);
             await RefreshData();
-            Snackbar.Add("Schedule deleted. Click Save in the top menu to persist changes.", Severity.Success);
+            Snackbar.Add("Schedule deleted. Click Publish to sync with Messagebird.", Severity.Success);
+        }
+    }
+
+    private async Task ImportFromExcel()
+    {
+        // Trigger the hidden file input
+        await JSRuntime.InvokeVoidAsync("document.getElementById('excelFileInput').click");
+    }
+
+    private async Task OnExcelFileSelected(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            var file = e.File;
+            if (file == null)
+                return;
+
+            using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10MB max
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            memoryStream.Position = 0;
+
+            var (importedConsignees, importedSchedules) = await ExcelService.ImportFromExcelAsync(memoryStream);
+
+            // Import with merge (not replace)
+            if (importedConsignees.Count > 0)
+            {
+                DataService.ImportConsignees(importedConsignees, replace: false);
+            }
+            
+            if (importedSchedules.Count > 0)
+            {
+                DataService.ImportSchedules(importedSchedules, replace: false);
+            }
+
+            await RefreshData();
+            Snackbar.Add($"Imported {importedConsignees.Count} consignees and {importedSchedules.Count} schedules. Click Publish to sync with Messagebird.", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error importing Excel file: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportToExcel()
+    {
+        try
+        {
+            var stream = await ExcelService.ExportToExcelStreamAsync(consigneesList, scheduleList);
+            var fileName = $"schedule-export-{DateTime.Now:yyyy-MM-dd-HHmmss}.xlsx";
+            
+            // Convert to base64 and trigger download
+            var bytes = stream.ToArray();
+            var base64 = Convert.ToBase64String(bytes);
+            await JSRuntime.InvokeVoidAsync("eval", $"(function(){{var a=document.createElement('a');a.href='data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{base64}';a.download='{fileName}';document.body.appendChild(a);a.click();document.body.removeChild(a);}})()");
+            
+            Snackbar.Add($"Exported to {fileName}", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error exporting to Excel: {ex.Message}", Severity.Error);
         }
     }
 
