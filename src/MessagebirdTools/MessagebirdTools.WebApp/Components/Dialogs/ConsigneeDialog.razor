@@ -3,6 +3,7 @@
 
 <MudDialog >
     <DialogContent>
+        <MudTextField @bind-Value="consignee.Key" Label="Key" Required="true" RequiredError="Key is required" />
         <MudTextField @bind-Value="consignee.Name" Label="Name" Required="true" RequiredError="Name is required" />
         <MudTextField @bind-Value="consignee.Email" Label="Email" Required="true" RequiredError="Email is required" />
         <MudTextField @bind-Value="consignee.Phone" Label="Phone" Required="true" RequiredError="Phone is required" />
