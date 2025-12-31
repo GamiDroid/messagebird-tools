@@ -64,66 +64,66 @@ else
         else
         {
             <MudGrid Class="schedule-content">
-            @if (showTable)
-     {
-<MudItem xs="@(showCalendar ? 6 : 12)" Class="scrollable-panel">
-            <MudPaper Class="pa-4 d-flex flex-column" Style="height: 100%;">
-  <div class="scroll-content">
-    <MudTable Items="@scheduleList" Dense="true" Hover="true" Bordered="true" Striped="true" FixedHeader="true">
-        <HeaderContent>
-          <MudTh>Consignee</MudTh>
-        <MudTh>Start Time</MudTh>
-               <MudTh>End Time</MudTh>
-         <MudTh Style="text-align: center">Actions</MudTh>
-          </HeaderContent>
-     <RowTemplate>
-                    <MudTd>@GetConsigneeName(context.Consignee)</MudTd>
-   <MudTd>@context.From.LocalDateTime.ToString("g")</MudTd>
-           <MudTd>@context.To.LocalDateTime.ToString("g")</MudTd>
-        <MudTd Style="text-align: center">
-            <MudStack Row="true" Justify="Justify.Center" Spacing="2">
-   <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => OpenEditDialog(context))" />
-     <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => OpenDeleteDialog(context))" />
-                   </MudStack>
-    </MudTd>
-  </RowTemplate>
-           </MudTable>
-     </div>
-     </MudPaper>
-              </MudItem>
-     }
+                @if (showTable)
+                {
+                    <MudItem xs="@(showCalendar ? 6 : 12)" Class="scrollable-panel">
+                        <MudPaper Class="pa-4 d-flex flex-column" Style="height: 100%;">
+                            <div class="scroll-content">
+                                <MudTable Items="@scheduleList" Dense="true" Hover="true" Bordered="true" Striped="true" FixedHeader="true">
+                                    <HeaderContent>
+                                        <MudTh>Consignee</MudTh>
+                                        <MudTh>Start Time</MudTh>
+                                        <MudTh>End Time</MudTh>
+                                        <MudTh Style="text-align: center">Actions</MudTh>
+                                    </HeaderContent>
+                                    <RowTemplate>
+                                        <MudTd>@GetConsigneeName(context.Consignee)</MudTd>
+                                        <MudTd>@context.From.LocalDateTime.ToString("g")</MudTd>
+                                        <MudTd>@context.To.LocalDateTime.ToString("g")</MudTd>
+                                        <MudTd Style="text-align: center">
+                                            <MudStack Row="true" Justify="Justify.Center" Spacing="2">
+                                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => OpenEditDialog(context))" />
+                                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => OpenDeleteDialog(context))" />
+                                            </MudStack>
+                                        </MudTd>
+                                    </RowTemplate>
+                                </MudTable>
+                            </div>
+                        </MudPaper>
+                    </MudItem>
+                }
 
-             @if (showCalendar)
-   {
-         <MudItem xs="@(showTable ? 6 : 12)" Class="scrollable-panel">
-       <MudPaper Class="pa-4 d-flex flex-column" Style="height: 100%;">
-               <div class="scroll-content">
-     <RadzenScheduler TItem="ScheduleAppointment" 
-     Data=@appointments 
-              StartProperty="Start" 
-           EndProperty="End"
-               TextProperty="Text" 
-   SelectedIndex="2" 
-     SlotRender="OnSlotRender" 
-         AppointmentRender="OnAppointmentRender"
-       AppointmentMouseEnter=@OnAppointmentMouseEnter 
-           AppointmentMouseLeave=@OnAppointmentMouseLeave
-        Style="height: 100%;">
-     <RadzenDayView />
-      <RadzenWeekView />
- <RadzenMonthView />
-          <RadzenYearView />
- </RadzenScheduler>
-           </div>
-  </MudPaper>
-        </MudItem>
-        }
-     </MudGrid>
+                @if (showCalendar)
+                {
+                    <MudItem xs="@(showTable ? 6 : 12)" Class="scrollable-panel">
+                        <MudPaper Class="pa-4 d-flex flex-column" Style="height: 100%;">
+                            <div class="scroll-content">
+                                <RadzenScheduler TItem="ScheduleAppointment"
+                                                 Data=@appointments
+                                                 StartProperty="Start"
+                                                 EndProperty="End"
+                                                 TextProperty="Text"
+                                                 SelectedIndex="2"
+                                                 SlotRender="OnSlotRender"
+                                                 AppointmentRender="OnAppointmentRender"
+                                                 AppointmentMouseEnter=@OnAppointmentMouseEnter
+                                                 AppointmentMouseLeave=@OnAppointmentMouseLeave
+                                                 Style="height: 100%;">
+                                    <RadzenDayView />
+                                    <RadzenWeekView />
+                                    <RadzenMonthView />
+                                    <RadzenYearView />
+                                </RadzenScheduler>
+                            </div>
+                        </MudPaper>
+                    </MudItem>
+                }
+            </MudGrid>
         }
     </MudContainer>
 }
 
-<InputFile id="excelFileInput" OnChange="OnExcelFileSelected" style="display: none;" accept=".xlsx,.xls" />
+<MudFileUpload @ref="fileUpload" T="IBrowserFile" Hidden="true" Accept=".xlsx,.xls" OnFilesChanged="OnExcelFileSelected" />
 
 @code {
     private bool isInitialized = false;
@@ -134,6 +134,8 @@ else
     private string selectedConsigneeKey = "";
     private RadzenScheduler<ScheduleAppointment>? scheduler;
     private IList<ScheduleAppointment> appointments = new List<ScheduleAppointment>();
+
+    private MudFileUpload<IBrowserFile> fileUpload = null!;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -153,26 +155,26 @@ else
 
         TooltipService.Open(args.Element, ts =>
             @<RadzenStack Orientation="Radzen.Orientation.Vertical" Gap="0" class="rz-p-6" Style="min-width: 250px; max-width: 500px;">
-            <RadzenText TextStyle="TextStyle.H4" class="rz-mb-4" Style="color: var(--rz-tooltip-color);">
-                    @args.Data.Text
-                </RadzenText>
-                <RadzenStack Orientation="Radzen.Orientation.Horizontal" Gap="4px">
-                <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-tooltip-color); width: 44px;">
-                        <strong>Start</strong>
-                    </RadzenText>
-                <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-tooltip-color);">
-                        @args.Data.Start.ToString("hh:mm ⋅ dddd, MMMM d")
-                    </RadzenText>
-                </RadzenStack>
-                <RadzenStack Orientation="Radzen.Orientation.Horizontal" Gap="4px">
-                <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-tooltip-color); width: 44px;">
-                        <strong>End</strong>
-                    </RadzenText>
-                <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-tooltip-color);">
-                        @args.Data.End.ToString("hh:mm ⋅ dddd, MMMM d")
-                    </RadzenText>
-                </RadzenStack>
-            </RadzenStack>
+    <RadzenText TextStyle="TextStyle.H4" class="rz-mb-4" Style="color: var(--rz-tooltip-color);">
+        @args.Data.Text
+    </RadzenText>
+    <RadzenStack Orientation="Radzen.Orientation.Horizontal" Gap="4px">
+        <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-tooltip-color); width: 44px;">
+            <strong>Start</strong>
+        </RadzenText>
+        <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-tooltip-color);">
+            @args.Data.Start.ToString("hh:mm ⋅ dddd, MMMM d")
+        </RadzenText>
+    </RadzenStack>
+    <RadzenStack Orientation="Radzen.Orientation.Horizontal" Gap="4px">
+        <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-tooltip-color); width: 44px;">
+            <strong>End</strong>
+        </RadzenText>
+        <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-tooltip-color);">
+            @args.Data.End.ToString("hh:mm ⋅ dddd, MMMM d")
+        </RadzenText>
+    </RadzenStack>
+</RadzenStack>
             , new TooltipOptions { Position = TooltipPosition.Top, Duration = null, Style = $"background: {color}" });
     }
 
@@ -335,7 +337,7 @@ else
     private async Task ImportFromExcel()
     {
         // Trigger the hidden file input
-        await JSRuntime.InvokeVoidAsync("document.getElementById('excelFileInput').click");
+        await fileUpload.OpenFilePickerAsync();
     }
 
     private async Task OnExcelFileSelected(InputFileChangeEventArgs e)
@@ -356,12 +358,12 @@ else
             // Import with merge (not replace)
             if (importedConsignees.Count > 0)
             {
-                DataService.ImportConsignees(importedConsignees, replace: false);
+                DataService.ImportConsignees(importedConsignees, replace: true);
             }
-            
+
             if (importedSchedules.Count > 0)
             {
-                DataService.ImportSchedules(importedSchedules, replace: false);
+                DataService.ImportSchedules(importedSchedules, replace: true);
             }
 
             await RefreshData();
@@ -379,12 +381,12 @@ else
         {
             var stream = await ExcelService.ExportToExcelStreamAsync(consigneesList, scheduleList);
             var fileName = $"schedule-export-{DateTime.Now:yyyy-MM-dd-HHmmss}.xlsx";
-            
+
             // Convert to base64 and trigger download
             var bytes = stream.ToArray();
             var base64 = Convert.ToBase64String(bytes);
             await JSRuntime.InvokeVoidAsync("eval", $"(function(){{var a=document.createElement('a');a.href='data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{base64}';a.download='{fileName}';document.body.appendChild(a);a.click();document.body.removeChild(a);}})()");
-            
+
             Snackbar.Add($"Exported to {fileName}", Severity.Success);
         }
         catch (Exception ex)

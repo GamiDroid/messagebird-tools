@@ -19,15 +19,15 @@
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
         <MudText Typo="Typo.h5" Class="ml-3">MessagebirdTools</MudText>
         <MudSpacer />
-        
+
         @if (DataService.HasUnsavedChanges)
         {
             <MudText Typo="Typo.body2" Color="Color.Warning" Class="mr-2">● Unsaved Changes</MudText>
         }
-        
-        <MudButton StartIcon="@Icons.Material.Filled.CloudDownload" 
-                   Color="Color.Info" 
-                   Variant="MudBlazor.Variant.Filled" 
+
+        <MudButton StartIcon="@Icons.Material.Filled.CloudDownload"
+                   Color="Color.Info"
+                   Variant="MudBlazor.Variant.Filled"
                    OnClick="FetchFromMessagebird"
                    Disabled="@_isFetching"
                    Class="mr-2">
@@ -40,10 +40,10 @@
                 <span>Fetch</span>
             }
         </MudButton>
-        
-        <MudButton StartIcon="@Icons.Material.Filled.Publish" 
-                   Color="Color.Success" 
-                   Variant="MudBlazor.Variant.Filled" 
+
+        <MudButton StartIcon="@Icons.Material.Filled.Publish"
+                   Color="Color.Success"
+                   Variant="MudBlazor.Variant.Filled"
                    OnClick="PublishToMessagebird"
                    Disabled="@_isPublishing"
                    Class="mr-2">
@@ -56,7 +56,7 @@
                 <span>Publish</span>
             }
         </MudButton>
-        
+
         <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" />
         <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
     </MudAppBar>
@@ -114,7 +114,7 @@
     {
         _isFetching = true;
         StateHasChanged();
-        
+
         try
         {
             await DataService.FetchFromMessagebirdAsync();
@@ -135,7 +135,7 @@
     {
         _isPublishing = true;
         StateHasChanged();
-        
+
         try
         {
             await DataService.PublishToMessagebirdAsync();
