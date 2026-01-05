@@ -77,7 +77,14 @@ else
                                         <MudTh Style="text-align: center">Actions</MudTh>
                                     </HeaderContent>
                                     <RowTemplate>
-                                        <MudTd>@GetConsigneeName(context.Consignee)</MudTd>
+                                        <MudTd>
+                                            <MudStack Row="true" Spacing="2" AlignItems="MudBlazor.AlignItems.Center">
+                                                <MudIcon Icon="@Icons.Material.Filled.Person" 
+                                                         Size="Size.Small" 
+                                                         Style="@($"color: {GetConsigneeColor(consigneesList, context.Consignee)}")" />
+                                                <span>@GetConsigneeName(context.Consignee)</span>
+                                            </MudStack>
+                                        </MudTd>
                                         <MudTd>@context.From.LocalDateTime.ToString("g")</MudTd>
                                         <MudTd>@context.To.LocalDateTime.ToString("g")</MudTd>
                                         <MudTd Style="text-align: center">
@@ -224,7 +231,7 @@ else
         args.Attributes["style"] = $"background: {color};";
     }
 
-    private static string GetConsigneeColor(IEnumerable<Consignee> consignees, string consigneeKey)
+    private static string GetConsigneeColor(IEnumerable<Consignee> consignees, string? consigneeKey)
     {
         var consigneeIndex = consignees
             .OrderBy(c => c.Key).Select((c, i) => new { Index = i, Consignee = c })
