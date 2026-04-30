@@ -69,7 +69,7 @@ else
                     <MudItem xs="@(showCalendar ? 6 : 12)" Class="scrollable-panel">
                         <MudPaper Class="pa-4 d-flex flex-column" Style="height: 100%;">
                             <div class="scroll-content">
-                                <MudTable Items="@scheduleList" Dense="true" Hover="true" Bordered="true" Striped="true" FixedHeader="true">
+                                <MudTable Items="@orderedScheduleList" Dense="true" Hover="true" Bordered="true" Striped="true" FixedHeader="true">
                                     <HeaderContent>
                                         <MudTh>Consignee</MudTh>
                                         <MudTh>Start Time</MudTh>
@@ -137,6 +137,8 @@ else
     private bool showTable = true;
     private bool showCalendar = true;
     private List<Schedule> scheduleList = new();
+    private IOrderedEnumerable<Schedule> orderedScheduleList => scheduleList.OrderBy(s => s.From);
+
     private List<Consignee> consigneesList = new();
     private string selectedConsigneeKey = "";
     private RadzenScheduler<ScheduleAppointment>? scheduler;
