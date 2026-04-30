@@ -134,13 +134,11 @@ else
 
     private async Task OpenDeleteDialog(Consignee consignee)
     {
-        var parameters = new DialogParameters
-        {
-            ["ContentText"] = $"Are you sure you want to delete {consignee.Name}? This action cannot be undone."
-        };
-        
-        var dialog = DialogService.Show<ConfirmDialog>("Confirm Delete", parameters);
-        var result = await dialog.Result;
+        var result = await ConfirmDialog.Show(
+            DialogService, 
+            title: "Confirm Delete", 
+            contentText: $"Are you sure you want to delete {consignee.Name}? This action cannot be undone.", 
+            submitButtonText: "Delete");
         
         if (!result.Canceled)
         {

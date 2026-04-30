@@ -4,14 +4,28 @@
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Error" OnClick="Submit">Delete</MudButton>
+        <MudButton Color="Color.Error" OnClick="Submit">@SubmitButtonText</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; } = default!;
     [Parameter] public string ContentText { get; set; } = "";
+    [Parameter] public string SubmitButtonText { get; set; } = "Submit";
 
     private void Cancel() => MudDialog.Cancel();
     private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+
+    public static Task<DialogResult> Show(IDialogService dialogService, string title, string contentText, string submitButtonText = "Submit")
+    {
+        var parameters = new DialogParameters
+        {
+            { nameof(ContentText), contentText },
+            { nameof(SubmitButtonText), submitButtonText }
+        };
+
+        var dialog = dialogService.Show<ConfirmDialog>(title, parameters);
+
+        return dialog.Result!;
+    }
 }

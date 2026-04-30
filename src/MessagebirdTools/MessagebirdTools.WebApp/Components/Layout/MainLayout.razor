@@ -1,5 +1,6 @@
 ﻿@using MessagebirdTools.WebApp.Services
 @using MessagebirdTools.WebApp.Models
+@using MessagebirdTools.WebApp.Components.Dialogs
 @inherits LayoutComponentBase
 @inject IDialogService DialogService
 @inject NavigationManager NavigationManager
@@ -133,6 +134,17 @@
 
     private async Task PublishToMessagebird()
     {
+        var settings = SettingsService.GetSettings();
+
+        var result = await ConfirmDialog.Show(
+            DialogService,
+            title: "Confirm publish",
+            contentText: $"Are you sure you want to publish to database-key {settings.DatabaseRecordKey}?",
+            submitButtonText: "Publish");
+
+        if (result.Canceled)
+            return;
+
         _isPublishing = true;
         StateHasChanged();
 

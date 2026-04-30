@@ -327,13 +327,11 @@ else
 
     private async Task OpenDeleteDialog(Schedule schedule)
     {
-        var parameters = new DialogParameters
-        {
-            ["ContentText"] = $"Are you sure you want to delete this schedule? This action cannot be undone."
-        };
-
-        var dialog = DialogService.Show<ConfirmDialog>("Confirm Delete", parameters);
-        var result = await dialog.Result;
+        var result = await ConfirmDialog.Show(
+            DialogService,
+            title: "Confirm Delete",
+            contentText: "Are you sure you want to delete this schedule? This action cannot be undone.",
+            submitButtonText: "Delete");
 
         if (!result.Canceled)
         {
