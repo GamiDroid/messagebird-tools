@@ -90,6 +90,7 @@ else
                                         <MudTd Style="text-align: center">
                                             <MudStack Row="true" Justify="Justify.Center" Spacing="2">
                                                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => OpenEditDialog(context))" />
+                                                <MudIconButton Icon="@Icons.Material.Filled.CallSplit" Size="Size.Small" Color="Color.Secondary" Title="Split" OnClick="@(() => OpenSplitDialog(context))" />
                                                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => OpenDeleteDialog(context))" />
                                             </MudStack>
                                         </MudTd>
@@ -338,6 +339,44 @@ else
             DataService.DeleteSchedule(schedule.LineNumber);
             await RefreshData();
             Snackbar.Add("Schedule deleted. Click Publish to sync with Messagebird.", Severity.Success);
+        }
+    }
+
+    private async Task OpenSplitDialog(Schedule schedule)
+    {
+        var parameters = new DialogParameters
+        {
+            ["Schedule"] = schedule,
+            ["ConsigneeName"] = GetConsigneeName(schedule.Consignee)
+        };
+
+        var dialog = DialogService.Show<SplitScheduleDialog>("Split Schedule", parameters);
+        var result = await dialog.Result;
+
+        if (!result!.Canceled)
+        {
+            var splitPoint = (DateTimeOffset)result.Data!;
+
+            var firstPart = new Schedule
+            {
+                Consignee = schedule.Consignee,
+                From = schedule.From,
+                To = splitPoint
+            };
+
+            var secondPart = new Schedule
+            {
+                Consignee = schedule.Consignee,
+                From = splitPoint.AddSeconds(1),
+                To = schedule.To
+            };
+
+            DataService.DeleteSchedule(schedule.LineNumber);
+            DataService.AddSchedule(firstPart);
+            DataService.AddSchedule(secondPart);
+
+            await RefreshData();
+            Snackbar.Add("Schedule split into two parts. Click Publish to sync with Messagebird.", Severity.Success);
         }
     }
 

@@ -1,0 +1,71 @@
+@using MessagebirdTools.WebApp.Models
+
+<MudDialog>
+    <DialogContent>
+        <MudText Class="mb-4">
+            Split the schedule for <strong>@ConsigneeName</strong>
+            from <strong>@Schedule.From.LocalDateTime.ToString("g")</strong>
+            to <strong>@Schedule.To.LocalDateTime.ToString("g")</strong>.
+        </MudText>
+        <MudText Typo="Typo.body2" Class="mb-2">Select the split point — this becomes the end of the first part and the start of the second part.</MudText>
+        <MudDatePicker @bind-Date="splitDate" Label="Split Date" Required="true"
+                       MinDate="@Schedule.From.LocalDateTime.Date"
+                       MaxDate="@Schedule.To.LocalDateTime.Date" />
+        <MudTimePicker @bind-Time="splitTime" Label="Split Time" Required="true" />
+        @if (validationError != null)
+        {
+            <MudAlert Severity="Severity.Warning" Class="mt-2">@validationError</MudAlert>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Split</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public Schedule Schedule { get; set; } = default!;
+    [Parameter] public string ConsigneeName { get; set; } = string.Empty;
+
+    private DateTime? splitDate;
+    private TimeSpan? splitTime;
+    private string? validationError;
+
+    protected override void OnInitialized()
+    {
+        // Default split point to the midpoint of the schedule
+        var mid = Schedule.From + (Schedule.To - Schedule.From) / 2;
+        splitDate = mid.LocalDateTime.Date;
+        splitTime = mid.LocalDateTime.TimeOfDay;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void Submit()
+    {
+        validationError = null;
+
+        if (!splitDate.HasValue || !splitTime.HasValue)
+        {
+            validationError = "Please select a split date and time.";
+            return;
+        }
+
+        var splitPoint = new DateTimeOffset(splitDate.Value.Add(splitTime.Value), Schedule.From.Offset);
+
+        if (splitPoint <= Schedule.From)
+        {
+            validationError = "Split point must be after the schedule start time.";
+            return;
+        }
+
+        if (splitPoint >= Schedule.To)
+        {
+            validationError = "Split point must be before the schedule end time.";
+            return;
+        }
+
+        MudDialog.Close(DialogResult.Ok(splitPoint));
+    }
+}
