@@ -34,6 +34,16 @@
         overflow: auto;
         min-height: 0;
     }
+
+    @@keyframes row-highlight-flash {
+        0%   { background-color: var(--mud-palette-warning-lighten); }
+        70%  { background-color: var(--mud-palette-warning-lighten); }
+        100% { background-color: transparent; }
+    }
+
+    .row-highlight {
+        animation: row-highlight-flash 1.8s ease-out forwards;
+    }
 </style>
 
 @if (!isInitialized)
@@ -69,14 +79,15 @@ else
                     <MudItem xs="@(showCalendar ? 6 : 12)" Class="scrollable-panel">
                         <MudPaper Class="pa-4 d-flex flex-column" Style="height: 100%;">
                             <div class="scroll-content">
-                                <MudTable Items="@orderedScheduleList" Dense="true" Hover="true" Bordered="true" Striped="true" FixedHeader="true">
+                                <MudTable @ref="scheduleTable" Items="@orderedScheduleList" Dense="true" Hover="true" Bordered="true" Striped="true" FixedHeader="true"
+                                          RowClassFunc="@GetRowClass" id="schedule-table">
                                     <HeaderContent>
                                         <MudTh>Consignee</MudTh>
                                         <MudTh>Start Time</MudTh>
                                         <MudTh>End Time</MudTh>
                                         <MudTh Style="text-align: center">Actions</MudTh>
                                     </HeaderContent>
-                                    <RowTemplate>
+                                    <RowTemplate Context="context">
                                         <MudTd>
                                             <MudStack Row="true" Spacing="2" AlignItems="MudBlazor.AlignItems.Center">
                                                 <MudIcon Icon="@Icons.Material.Filled.Person" 
@@ -114,6 +125,7 @@ else
                                                  SelectedIndex="2"
                                                  SlotRender="OnSlotRender"
                                                  AppointmentRender="OnAppointmentRender"
+                                                 AppointmentSelect=@OnAppointmentSelect
                                                  AppointmentMouseEnter=@OnAppointmentMouseEnter
                                                  AppointmentMouseLeave=@OnAppointmentMouseLeave
                                                  Style="height: 100%;">
@@ -137,8 +149,10 @@ else
     private bool isInitialized = false;
     private bool showTable = true;
     private bool showCalendar = true;
+    private int? highlightedLineNumber = null;
     private List<Schedule> scheduleList = new();
     private IOrderedEnumerable<Schedule> orderedScheduleList => scheduleList.OrderBy(s => s.From);
+    private MudTable<Schedule>? scheduleTable;
 
     private List<Consignee> consigneesList = new();
     private string selectedConsigneeKey = "";
@@ -254,12 +268,30 @@ else
         };
     }
 
+    private string GetRowClass(Schedule schedule, int rowIndex)
+    {
+        return highlightedLineNumber == schedule.LineNumber ? "row-highlight" : "";
+    }
+
     async Task OnAppointmentSelect(SchedulerAppointmentSelectEventArgs<ScheduleAppointment> args)
     {
         var schedule = scheduleList.FirstOrDefault(s => s.LineNumber == args.Data.LineNumber);
         if (schedule != null)
         {
-            await OpenEditDialog(schedule);
+            if (showTable)
+            {
+                var rowIndex = orderedScheduleList.ToList().FindIndex(s => s.LineNumber == schedule.LineNumber);
+                highlightedLineNumber = schedule.LineNumber;
+                StateHasChanged();
+                await JSRuntime.InvokeVoidAsync("scrollToScheduleRow", "schedule-table", rowIndex);
+                await Task.Delay(2000);
+                highlightedLineNumber = null;
+                StateHasChanged();
+            }
+            else
+            {
+                await OpenEditDialog(schedule);
+            }
         }
     }
 
